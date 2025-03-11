@@ -1,0 +1,76 @@
+
+/* ------------------------------------- BOTONES MAS Y MENOS -------------------------------------*/
+
+.btn-custom {
+    background-color: #46287d; /* Color morado para el fondo */
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 5px; /* Espacio entre los botones */
+    transition: background-color 0.3s ease;
+}
+
+.btn-custom.max {
+    background-color: #46287d; /* Color para el botón "+" */
+    padding: 5px 10px;
+}
+
+.btn-custom.min {
+    background-color: #000000; /* Color para el botón "-" */
+    padding: 5px 10px;
+}
+
+.btn-custom:hover {
+    background-color: #696767; /* Color más oscuro cuando se pasa el mouse */
+}
+.stock-buttons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.btn-equal-size {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btnclear{
+    position: absolute; 
+    top: 50%; 
+    right: 10px; 
+    transform: translateY(-50%); 
+    border: none; 
+    background: transparent; 
+    cursor: pointer; 
+    padding: 0;
+    font-size: 16px;
+    color:grey;
+}
+/* ----------------------------------------------------------------------------------------------*/
+
+/* ------------------------------------- CAMBIO COLOR ESTADO -------------------------------------*/
+
+.text-activo {
+    color: green;
+    font-weight: bold;
+}
+
+.text-inactivo {
+    color: red;
+    font-weight: bold;
+}
+
+
+/* ----------------------------------------------------------------------------------------------*/
+
+.table-responsive {
+    overflow-x: unset; /* Permite el desplazamiento horizontal */
+    -webkit-overflow-scrolling: touch; /* Suaviza el desplazamiento en dispositivos móviles */
+}
+
+ 
