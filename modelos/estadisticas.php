@@ -142,7 +142,7 @@ class Estadisticas{
     public static function totalDia($conexion,$fecha){
         $sql = "SELECT IFNULL(SUM(total), 0) as total 
             FROM compras 
-            WHERE DATE(fecha) = :fecha AND estado = 'COMPLETED'";
+            WHERE DATE(fecha) = :fecha AND estado = 'approved'";
         $stmt = $conexion->prepare($sql);
         $stmt->bindParam(':fecha', $fecha, PDO::PARAM_STR);
         $stmt->execute();

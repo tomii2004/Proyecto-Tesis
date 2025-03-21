@@ -9,6 +9,8 @@ require '../../modelos/configproduct-detail.php';
 $id_transaccion = isset($_GET['collection_id']) ? $_GET['collection_id'] : '';
 
 if ($id_transaccion) {
+    
+
     // Obtener datos de la API de Mercado Pago
     $url = "https://api.mercadopago.com/v1/payments/{$id_transaccion}?access_token=" . TOKEN_MP;
     $response = file_get_contents($url);
@@ -24,6 +26,17 @@ if ($id_transaccion) {
         $estado = $datos['status'];
         $fecha_nueva = date('Y-m-d H:i:s', strtotime($datos['date_approved']));
         $email = $row_cliente['email'];
+
+        // Verificar si la transacción ya existe en la base de datos
+        $verificar = $conexion->prepare("SELECT ID_transaccion FROM compras WHERE ID_transaccion = ?");
+        $verificar->execute([$id_transaccion]);
+        $compra_existente = $verificar->fetch(PDO::FETCH_ASSOC);
+
+        if ($compra_existente) {
+            // Si la compra ya fue registrada, redirigir sin volver a insertarla
+            header("Location: ../completado.php?key=" . $id_transaccion);
+            exit;
+        }
 
         // Guardar la compra en la base de datos
         $sql = $conexion->prepare("INSERT INTO compras (ID_transaccion, fecha, estado, email, ID_cliente, total, medio_pago) VALUES (?, ?, ?, ?, ?, ?, ?);");
@@ -47,9 +60,16 @@ if ($id_transaccion) {
             }
             require 'mailer.php';
 
-            $asunto = "Detalle de su compra";
-            $cuerpo = "<h4>Gracias por su compra</h4>";
-            $cuerpo .= "<p>El ID de su compra es <b>{$id_transaccion}</b></p>";
+            $asunto = "¡Gracias por tu compra! Aquí están los detalles";
+
+            $cuerpo = "<h3>¡Gracias por confiar en nosotros!</h3>";
+            $cuerpo .= "<p>Tu compra ha sido procesada con éxito. A continuación, te dejamos los detalles:</p>";
+            $cuerpo .= "<p><b>ID de la compra:</b> {$id_transaccion}</p>";
+            $cuerpo .= "<p><b>Fecha de compra:</b> {$fecha_nueva}</p>";
+            $cuerpo .= "<p><b>Total pagado:</b> $" . number_format($total, 2) . "</p>";
+            $cuerpo .= "<p><b>Método de pago:</b> Mercado Pago</p>";
+            $cuerpo .= "<p>Estamos preparando tu pedido y pronto lo recibirás. Si tienes alguna consulta, no dudes en contactarnos.</p>";
+            $cuerpo .= "<br><p><b>¡Esperamos que disfrutes tu compra!</b></p>";
 
             $mailer = new Mailer();
             $mailer->enviarEmail($email, $asunto, $cuerpo);

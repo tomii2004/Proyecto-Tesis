@@ -12,7 +12,8 @@ class Mailer{
 
         try {
             //Server settings
-            
+            $mail->CharSet = 'UTF-8';
+
             $mail->SMTPDebug = SMTP::DEBUG_OFF; //SMTP :: DEBUG_OFF;                      //Enable verbose debug output
             
             $mail->isSMTP();                                            //Send using SMTP

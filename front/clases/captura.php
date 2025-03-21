@@ -1,4 +1,63 @@
 
+<!-- <div id="paypal-button-container"></div> -->
+
+<!--===========================PAYPAL==========================================================-->
+<!-- <script src="https://www.paypal.com/sdk/js?client-id=<?php //echo CLIENTE_ID ?>&buyer-country=US&currency=<?php// echo CURRENCY ?>&components=buttons&enable-funding=venmo,paylater,card&disable-funding=paylater" data-sdk-integration-source="developer-studio"></script> -->
+
+<!--===============================================================================================-->    
+    
+    <!-- <script>
+        paypal.Buttons({
+            style:{
+                color: 'blue',
+                shape: 'pill',
+                label: 'pay'
+            },
+            createOrder: function(data,actions){
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: <?//php echo $total ?>
+                        }
+                    }]
+                })
+            },
+            onApprove: function(data,actions){
+                let url = 'clases/captura.php'
+                actions.order.capture().then(function(detalles){
+                    
+                    console.log(detalles)
+                    
+                    return fetch(url,{
+                        method: 'post',
+                        headers:{
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            detalles: detalles
+                        })
+                    }).then(function(response){
+						window.location.href = "completado.php?key=" + detalles['id']; 
+					})
+                });
+            },
+            onCancel: function (data){
+                alert("Pago Cancelado");
+                console.log(data);
+            }
+        }).render('#paypal-button-container');
+    </script>
+								 -->
+
+
+
+
+
+
+
+
+
+
 <?php
 
 date_default_timezone_set('America/Argentina/Buenos_Aires'); //para que la hora sea argentina

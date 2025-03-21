@@ -37,7 +37,7 @@ class InicioControlador{
             ));
             $this->modelo->GuardarResumenSemanal($totalVentas, $productosVendidos);
         }
-    
+        
         // Mostrar estadísticas
         $diasVentasEstadisticas = $this->modelo->EstadisticasVentasSemana();
         list($nombreProductos, $cantidadProductos) = $this->modelo->EstadisticasProdVendido();
