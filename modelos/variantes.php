@@ -117,13 +117,33 @@ class Variantes{
         $sql -> execute([$nombre,$id]);
     }
 
+    public function VarianteEnUso($id, $tipo) {
+        if ($tipo === 'talla') {
+            $sql = $this->pdo->prepare("SELECT COUNT(*) FROM producto WHERE talle = ?");
+        } else {
+            $sql = $this->pdo->prepare("SELECT COUNT(*) FROM producto WHERE color = ?");
+        }
+        
+        $sql->execute([$id]);
+        return $sql->fetchColumn() > 0; // Retorna true si está en uso
+    }
+
     public function EliminarTallaModelo($id) {
+        if ($this->VarianteEnUso($id, 'talla')) {
+            return false; // Indica que no se puede eliminar
+        }
         $sql = $this->pdo->prepare("DELETE FROM c_talla WHERE ID_talla = ?");
         $sql->execute([$id]);
+        return true;
     }
+    
     public function EliminarColorModelo($id) {
+        if ($this->VarianteEnUso($id, 'color')) {
+            return false;
+        }
         $sql = $this->pdo->prepare("DELETE FROM c_colores WHERE ID_colores = ?");
         $sql->execute([$id]);
+        return true;
     }
 
 

@@ -64,7 +64,13 @@ class CategoriasControlador{
     public function EliminarCategoria() {
         if (isset($_POST['id'])) {
             $id = $_POST['id'];
-            $this->modelo->EliminarCategoriaModelo($id); // Llama al modelo para eliminar la categoría
+            $resultados = $this->modelo->EliminarCategoriaModelo($id); // Llama al modelo para eliminar la categoría
+            
+            if (!$resultado) {
+                header("Location: ?c=categorias&alerta=uso"); // Mostrar mensaje de error
+                exit;
+            }
+
             header('Location: ?c=categorias'); // Redirige al listado
             exit;
         } else {
@@ -80,6 +86,11 @@ class CategoriasControlador{
     }
     public function PeticionBajaCategoria(){
         $id = $_POST['id']?? null;
+
+        if ($this->modelo->CategoriaEnUso($id)) {
+            echo json_encode(['error' => 'No se puede desactivar la categoría porque está en uso.']);
+            return;
+        }
 
         $datosCategoria= $this->modelo->DarBajaCategoria($id);
 

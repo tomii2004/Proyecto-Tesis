@@ -181,6 +181,15 @@
             }).then(() => {
                 window.location.href = '?c=categorias'; // Para limpiar la URL
             });
+        } else if (alerta === "uso") {  // 🚀 Nuevo caso para variantes en uso
+            Swal.fire({
+                icon: 'warning',
+                title: 'No se puede eliminar',
+                text: 'Esta categoria está en uso y no se puede eliminar.',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = '?c=categorias'; // Para limpiar la URL
+            });
         }
     });
 </script>

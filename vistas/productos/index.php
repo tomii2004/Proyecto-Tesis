@@ -68,7 +68,7 @@
                       </span>
                     </td>
                     <td><?= htmlspecialchars($r->genero) ?></td>
-                    <td><?= htmlspecialchars($r->categoria_nombre) ?></td>
+                    <td><?= htmlspecialchars(ucfirst($r->categoria_nombre)) ?></td>
                     <td><?= $r->descripcion ?></td>
                     <td>
                       <?php if (!empty($r->ruta_imagen)): ?>

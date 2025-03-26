@@ -78,9 +78,19 @@ class Categorias{
         $sql -> execute([$nombre,$id]);
     }
 
+    public function CategoriaEnUso($id){
+        $sql = $this->pdo->prepare("SELECT COUNT(*) FROM producto WHERE categoria = ?");
+        $sql->execute([$id]);
+        return $sql->fetchColumn() > 0; // Retorna true si está en uso
+    }
+
     public function EliminarCategoriaModelo($id) {
+        if($this->CategoriaEnUso($id)){
+            return false;
+        }
         $sql = $this->pdo->prepare("DELETE FROM categoria WHERE ID_categoria = ?");
         $sql->execute([$id]);
+        return true;
     }
 
 
@@ -93,8 +103,12 @@ class Categorias{
     }
 
     public function DarBajaCategoria($id){
+        if($this->CategoriaEnUso($id)){
+            return false;
+        }
         $sql = $this->pdo->prepare("UPDATE categoria SET activo = 0 WHERE ID_categoria = ?");
-        return $sql->execute([$id]);
+        $sql->execute([$id]);
+        return true;
     }
     public function DarAltaCategoria($id){
         $sql = $this->pdo->prepare("UPDATE categoria SET activo = 1 WHERE ID_categoria = ?");

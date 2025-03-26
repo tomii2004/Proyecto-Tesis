@@ -90,11 +90,18 @@ class VariantesControlador{
         if (isset($_POST['id']) && isset($_POST['tipo'])) {
             $id = $_POST['id'];
             $tipo = $_POST['tipo'];
+
+            $resultado = false;
     
             if ($tipo === 'talla') {
-                $this->modelo->EliminarTallaModelo($id);
+                $resultado = $this->modelo->EliminarTallaModelo($id);
             } elseif ($tipo === 'color') {
-                $this->modelo->EliminarColorModelo($id);
+                $resultado =  $this->modelo->EliminarColorModelo($id);
+            }
+            
+            if (!$resultado) {
+                header("Location: ?c=variantes&alerta=uso"); // Parámetro para mostrar mensaje de error
+                exit;
             }
     
             header('Location: ?c=variantes');
