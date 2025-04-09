@@ -67,16 +67,31 @@
 	///////////////////////////////////////
 
 
-	$productos = isset($_SESSION['carrito']['productos']) ? $_SESSION['carrito']['productos'] : null;
+	$productos = isset($_SESSION['carrito']['variantes']) ? $_SESSION['carrito']['variantes'] : null;
 
 	// print_r($_SESSION);
 
 	$lista_carrito = array();
 	if($productos != null){
-		foreach($productos as $clave => $cantidad){ // la clave es el id del producto 
-			$consulta_productos = $conexion -> prepare("SELECT * ,$cantidad AS cantidad FROM producto WHERE ID_producto = ? AND estado = 1; ");
-			$consulta_productos ->execute([$clave]);
-			$lista_carrito[] = $consulta_productos -> fetch(PDO::FETCH_ASSOC); // va a traer producto por producto 
+		foreach ($productos as $clave => $info) {
+			$id_variante = $info['id_variante'];
+			$cantidad = $info['cantidad'];
+		
+			$consulta = $conexion->prepare("
+				SELECT p.ID_producto, p.nombre, p.ruta_imagen, 
+					   v.precio, v.ID_producvar, v.ID_talla, v.ID_color 
+				FROM producto p 
+				INNER JOIN productos_variantes v ON p.ID_producto = v.ID_producto 
+				WHERE v.ID_producvar = ?
+			");
+			$consulta->execute([$id_variante]);
+			$datos = $consulta->fetch(PDO::FETCH_ASSOC);
+		
+			if ($datos) {
+				$datos['cantidad'] = $cantidad;
+				$datos['clave'] = $clave;
+				$lista_carrito[] = $datos;
+			}
 		}
 	}else{
         header("Location: index.php");
@@ -136,8 +151,8 @@
 											$total += $subtotal;	
 											
 											$productos_mp[] = [
-												"id" => (string) $producto['ID_producto'], // Asegurar que sea string
-												"title" => $producto['nombre'],
+												"id" => $producto['clave'], // Usamos IDproducto|IDvariante
+												"title" => $producto['nombre'] . " - Talle " . $producto['ID_talla'] . " / Color " . $producto['ID_color'],
 												"quantity" => (int) $producto['cantidad'], // Asegurar que sea int
 												"unit_price" => (float) $producto['precio'], // Asegurar que sea float
 												"currency_id" => "ARS"
@@ -199,17 +214,19 @@
 	
 
 	<?php
+	$base_url = "http://" . $_SERVER['HTTP_HOST'] . "/pruebastesis/front/clases/";
 	$preference = null;
 	try {
 		$preference = $client->create([
 			"items" => $productos_mp,
 			"back_urls" => [
-				"success" => "http://localhost/pruebastesis/front/clases/captura_MP.php",
-				"failure" => "http://localhost/failure.php",
-				"pending" => "http://localhost/pending.php"
+				"success" => $base_url . "captura_MP.php",
+				"failure" => $base_url . "failure.php",
+				"pending" => $base_url . "pending.php"
 			],
 			"auto_return" => "approved",
-			"binary_mode" => true
+			"binary_mode" => true,
+			
 		]);
 	} catch (Exception $e) {
 		echo "Error al crear la preferencia: " . $e->getMessage();
@@ -233,15 +250,9 @@
             },
         },
         callbacks: {
-            onSuccess: function(response) {
-                window.location.href = "clases/captura_MP.php?collection_id=" + response.collection_id;
-            },
             onError: function(error) {
-                alert("Error en el pago: " + error.message);
-            },
-            onPending: function(response) {
-                alert("Pago pendiente de aprobación.");
-            }
+				alert("Error en el pago: " + error.message);
+			}
         }
     });
 </script>

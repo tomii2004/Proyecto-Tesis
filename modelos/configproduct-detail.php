@@ -47,11 +47,20 @@ define("MAIL_PORT",465);
 // define("MAIL_PORT",465);
 
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $num_cart = 0;
-if(isset($_SESSION['carrito']['productos'])){
-    $num_cart = count($_SESSION['carrito']['productos']);
+if (isset($_SESSION['carrito']['variantes'])) {
+    foreach ($_SESSION['carrito']['variantes'] as $variante) {
+        if (is_array($variante) && isset($variante['cantidad'])) {
+            $num_cart += (int)$variante['cantidad'];
+        } elseif (is_numeric($variante)) {
+            $num_cart += (int)$variante;
+        }
+    }
 }
+
 
 ?>
