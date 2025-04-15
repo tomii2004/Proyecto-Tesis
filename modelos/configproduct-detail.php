@@ -18,7 +18,7 @@
 // }
 
 //Configuracion del sistema
-define("SITE_URL","http://localhost/proyecto-final-tesis");
+define("SITE_URL","http://localhost/pruebastesis");
 define("KEY_TOKEN", "TC-20-02-04"); //una constante
 define("MONEY","$");
 

@@ -100,12 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" href="loginestilos.css">
+    <link rel="stylesheet" href="loginestilospruebas4.css">
 </head>
 <body>
 
         <main>
-
+            <div class="logo-container text-center my-3">
+                <img src="../imagenes/logopsd.png" alt="Logo del local" class="logo-local">
+            </div>
             <div class="contenedor__todo">
                 <div class="caja__trasera">
                     <div class="caja__trasera-login">
@@ -113,11 +115,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                         <p>Inicia sesión para entrar en la página</p>
                         <a href="login.php"><button id="btn__iniciar-sesion">Iniciar Sesión</button></a>
                     </div>
-                    <div class="caja__trasera-register">
+                    <!-- <div class="caja__trasera-register">
                         <h3>¿Aún no tienes una cuenta?</h3>
                         <p>Regístrate para que puedas iniciar sesión</p>
                         <button id="btn__registrarse">Regístrarse</button>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div class="contenedor__login-register">
@@ -143,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                         
                         <button type="submit">Regístrarse</button>
 
-                        <?php mostrarMensajes($errors); ?>
+                        <?php mostrarMensajesLogin($errors); ?>
 
                     </form>
                 </div>

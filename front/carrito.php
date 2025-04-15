@@ -175,7 +175,7 @@
 											<?php echo MONEY; ?><?php echo number_format($subtotal,2,'.',','); ?>
 										</div>
 									</td>
-									<td><a id= "eliminar" class="btn btn-warning btn-sm" data-bs-id="<?php echo $id; ?>" data-bs-toggle="modal" data-bs-target="#eliminaModal">Eliminar</a></td>
+									<td><a id= "eliminar" class="btn btn-danger btn-sm text-white" data-bs-id="<?php echo $id; ?>" data-bs-toggle="modal" data-bs-target="#eliminaModal">Eliminar</a></td>
 								</tr>
 								<?php }}?>
 							</table>

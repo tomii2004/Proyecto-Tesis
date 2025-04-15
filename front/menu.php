@@ -24,6 +24,9 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
         .dropdown i{
             font-size: 1.5em;
         }
+        .dropdown-item:hover {
+            color: #ff6daf !important;    /* Color del texto al pasar el mouse */
+        }
         .dropdown-toggle::after {
             display: none !important; /* Oculta la flecha */
         }

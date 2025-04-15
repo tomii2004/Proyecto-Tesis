@@ -226,7 +226,7 @@
 							<!-- Cantidad Disponible - Mejor Espaciado y Sin Apariencia de Input -->
 							<div class="flex-w flex-r-m p-b-10">
 								<div class="size-204 respon6-next d-flex align-items-center">
-									<span class="me-1 text-muted small">Cantidad Disponible:</span>
+									<span id='palabra_stock' class="me-1 text-muted small">Cantidad Disponible:</span>
 									<input class="border-0 bg-transparent fw-bold p-0" 
 										id="nuevo_stock" readonly style="width: auto; pointer-events: none;">
 								</div>
@@ -247,7 +247,7 @@
 										</div> 
 									</div>
 							
-									<button class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04" onclick="addProducto(<?php echo $id; ?>,'<?php echo $token_tmp;?>')">
+									<button id="btnAgregarCarrito" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04" onclick="addProducto(<?php echo $id; ?>,'<?php echo $token_tmp;?>')">
 										Agregar al Carrito
 									</button>
 								</div>
@@ -446,7 +446,14 @@
 
 
 		function cargarVariante(){
+			const inputStock = document.getElementById('nuevo_stock');
+			const btnAgregar = document.getElementById('btnAgregarCarrito');
+			const palabra_stock = document.getElementById('palabra_stock');
 
+			inputStock.value = '';
+			inputStock.style.color = '#000'; // color por defecto
+			palabra_stock.style.display = 'inline';
+			
 			document.getElementById('nuevo_stock').value = '';
 			
 			let idTalla = 0
@@ -482,9 +489,31 @@
 			.then(data =>{
 				if(data.variantes != '' && data.variantes.stock !== undefined){
 					// document.getElementById('nuevo_precio').value = data.variantes.precio
-					document.getElementById('nuevo_stock').value = data.variantes.stock
-				}else{
-					document.getElementById('nuevo_precio').value = 'No encontro'
+					let stock = parseInt(data.variantes.stock);
+					if (stock > 0) {
+						inputStock.value = stock;
+						inputStock.style.color = '#89ac76';
+
+						// Habilitamos el botón
+						palabra_stock.style.display = 'inline';
+						btnAgregar.style.opacity = '1';
+						btnAgregar.style.pointerEvents = 'auto';
+					} else {
+						inputStock.value = 'Sin stock';
+						inputStock.style.color = '#CC6666';
+
+						// Deshabilitamos el botón
+						palabra_stock.style.display = 'none';
+						btnAgregar.style.opacity = '0.5';
+						btnAgregar.style.pointerEvents = 'none';
+					}
+				}else {
+					inputStock.value = 'No encontrado';
+					inputStock.style.color = 'gray';
+
+					labelStock.style.display = 'none';
+					btnAgregar.style.opacity = '0.5';
+					btnAgregar.style.pointerEvents = 'none';
 				}
 
 			})
