@@ -173,9 +173,9 @@
 							<?php echo $nombre ?>
 						</h4>
 
-						<span class="mtext-106 cl13">
-							<?php echo MONEY; ?>  <?php echo number_format($precio,2,'.',',')?>
-						</span>
+						<p class="mtext-110 cl13 mt-2">
+							Precio: <span id="precio_variante"></span>
+						</p>
 
 						<p class="stext-102 cl3 p-t-23">
 							<?php echo $desc ?>
@@ -227,8 +227,7 @@
 							<div class="flex-w flex-r-m p-b-10">
 								<div class="size-204 respon6-next d-flex align-items-center">
 									<span id='palabra_stock' class="me-1 text-muted small">Cantidad Disponible:</span>
-									<input class="border-0 bg-transparent fw-bold p-0" 
-										id="nuevo_stock" readonly style="width: auto; pointer-events: none;">
+									<input class="border-0 bg-transparent fw-bold p-0" id="nuevo_stock" readonly style="width: auto; pointer-events: none;">
 								</div>
 							</div>
 							
@@ -488,7 +487,13 @@
 			.then(response => response.json())
 			.then(data =>{
 				if(data.variantes != '' && data.variantes.stock !== undefined){
-					// document.getElementById('nuevo_precio').value = data.variantes.precio
+					const spanPrecio = document.getElementById('precio_variante');
+					let precio = parseFloat(data.variantes.precio);
+					if (!isNaN(precio)) {
+						spanPrecio.innerText = '<?php echo MONEY; ?> ' + precio.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+					} else {
+						spanPrecio.innerText = '';
+					}
 					let stock = parseInt(data.variantes.stock);
 					if (stock > 0) {
 						inputStock.value = stock;

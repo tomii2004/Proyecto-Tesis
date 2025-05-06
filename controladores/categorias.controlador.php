@@ -66,7 +66,7 @@ class CategoriasControlador{
             $id = $_POST['id'];
             $resultados = $this->modelo->EliminarCategoriaModelo($id); // Llama al modelo para eliminar la categoría
             
-            if (!$resultado) {
+            if (!$resultados) {
                 header("Location: ?c=categorias&alerta=uso"); // Mostrar mensaje de error
                 exit;
             }

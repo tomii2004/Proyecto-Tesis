@@ -117,17 +117,25 @@ header("Location: ../error.php?msg=pago");
 exit;
 
 function restarStock($idVariante, $cantidad, $conexion) {
+    // Restar stock de la variante (sin dejar que baje de 0)
     $conexion->prepare("UPDATE productos_variantes SET stock = GREATEST(stock - ?, 0) WHERE ID_producvar = ?")
              ->execute([$cantidad, $idVariante]);
 
+    // Obtener ID del producto principal
     $stmt = $conexion->prepare("SELECT ID_producto FROM productos_variantes WHERE ID_producvar = ?");
     $stmt->execute([$idVariante]);
     $idProducto = $stmt->fetchColumn();
 
+    // 🔽 Restar también al stock del producto principal
+    $conexion->prepare("UPDATE producto SET stock = GREATEST(stock - ?, 0) WHERE ID_producto = ?")
+             ->execute([$cantidad, $idProducto]);
+
+    // Verificar si quedan variantes con stock
     $check = $conexion->prepare("SELECT COUNT(*) FROM productos_variantes WHERE ID_producto = ? AND stock > 0");
     $check->execute([$idProducto]);
     $conStock = $check->fetchColumn();
 
+    // Actualizar estado (activo/inactivo)
     $estado = ($conStock == 0) ? 0 : 1;
     $conexion->prepare("UPDATE producto SET estado = ? WHERE ID_producto = ?")->execute([$estado, $idProducto]);
 }

@@ -30,6 +30,62 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
         .dropdown-toggle::after {
             display: none !important; /* Oculta la flecha */
         }
+        .custom-dropdown {
+            min-width: 220px;
+           /*  max-height: 300px; ajustá a tu gusto */
+            /* overflow-y: auto; */
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            top: calc(100% + 10px); /* Desplazamiento hacia abajo */
+            left: 50%;
+            transform: translateX(-50%);
+            position: absolute;
+            z-index: 1000;
+            /* scrollbar-width: thin;       /* Firefox */
+            /* scrollbar-color: #ff6daf #fff; */ 
+        }
+
+        /* Mejora de visibilidad en hover */
+        @media (min-width: 992px) {
+            .dropdown:hover .dropdown-menu {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .dropdown-menu {
+                display: none;
+                opacity: 0;
+                pointer-events: none;
+                transition: all 0.3s ease;
+            }
+        }
+
+        /* Estilo de los ítems */
+        .custom-dropdown .dropdown-item {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 0.6rem 1rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .custom-dropdown .dropdown-item:hover {
+            background-color: #ffe1ed;
+            color: #d63384;
+            border-radius: 6px;
+        }
+
+        /* Para navegadores basados en WebKit como Chrome y Edge 
+        .custom-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-dropdown::-webkit-scrollbar-thumb {
+            background-color: #ff6daf;
+            border-radius: 10px;
+        }*/
+
     </style>
 </head>
 <body>
@@ -37,6 +93,12 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
 </body>
 </html>
 <header>
+    <?php 
+    include_once  "../modelos/basededatos.php";
+    $conexion = BasedeDatos::Conectar();
+    
+    $categorias = $conexion->query("SELECT c.ID_categoria, c.nombre, c.activo, COUNT(p.ID_producto) AS cantidad_productos FROM categoria c LEFT JOIN producto p ON c.ID_categoria = p.categoria WHERE c.activo = 1 GROUP BY c.ID_categoria, c.nombre, c.activo HAVING cantidad_productos > 0 ")->fetchAll(PDO::FETCH_ASSOC);
+    ?>
     <!-- Header desktop -->
     <div class="container-menu-desktop">
         <!-- Topbar -->
@@ -61,8 +123,19 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
                         <li class="<?= ($current_page == 'index.php') ? 'active-menu' : '' ?>">
                             <a href="index.php">Inicio</a>
                         </li>
-                        <li class="<?= ($current_page == 'product.php') ? 'active-menu' : '' ?>">
-                            <a href="product.php">Tienda</a>
+                        <li class="nav-item dropdown position-relative <?= ($current_page == 'product.php') ? 'active-menu' : '' ?>">
+                            <a class="nav-link dropdown-toggle" href="product.php" id="dropdownTienda" role="button">
+                                Tienda
+                            </a>
+                            <ul class="dropdown-menu custom-dropdown" aria-labelledby="dropdownTienda">
+                                <?php foreach($categorias as $cat){ ?>
+                                    <li>
+                                        <a class="dropdown-item" href="product.php?cat=<?= $cat['ID_categoria'] ?>">
+                                            <?= ucfirst(htmlspecialchars($cat['nombre'])) ?>
+                                        </a>
+                                    </li>
+                                <?php } ?>
+                            </ul>
                         </li>
                         <li class="<?= ($current_page == 'about.php') ? 'active-menu' : '' ?>">
                             <a href="about.php">Sobre Nosotros</a>
@@ -180,3 +253,27 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </header>
 <?php include 'carritochico.php';?>
+
+<script>
+    //esto es para retardo en el select de la tienda
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropdown = document.querySelector('.nav-item.dropdown');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        let timeout;
+
+        dropdown.addEventListener('mouseenter', () => {
+            clearTimeout(timeout);
+            menu.style.display = 'block';
+            menu.style.opacity = '1';
+            menu.style.pointerEvents = 'auto';
+        });
+
+        dropdown.addEventListener('mouseleave', () => {
+            timeout = setTimeout(() => {
+                menu.style.display = 'none';
+                menu.style.opacity = '0';
+                menu.style.pointerEvents = 'none';
+            }, 300); // Tiempo de retardo en milisegundos
+        });
+    });
+</script>

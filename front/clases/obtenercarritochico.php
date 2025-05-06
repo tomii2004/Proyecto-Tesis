@@ -9,7 +9,7 @@ $conexion = BasedeDatos::Conectar();
 
 $productos_asociativo = isset($_SESSION['carrito']['variantes']) ? $_SESSION['carrito']['variantes'] : null;
 $lista_carrito = [];
-file_put_contents("debug_carrito.txt", print_r($_SESSION['carrito'], true));
+// file_put_contents("debug_carrito.txt", print_r($_SESSION['carrito'], true));
 if ($productos_asociativo && count($productos_asociativo) > 0) {
     // Convertir array asociativo a indexado
     $productos = array_values($productos_asociativo);

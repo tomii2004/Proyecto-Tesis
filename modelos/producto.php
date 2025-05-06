@@ -7,11 +7,8 @@ class Producto{
 
     private $ID_producto;
     private $nombre;
-    private $precio;
     private $stock;
     private $ruta_imagen;
-    private $talle;
-    private $color;
     private $estado;
     private $descripcion;
     private $genero;
@@ -39,14 +36,6 @@ class Producto{
     public function setNombre(string $nombre){
         $this -> nombre= $nombre;
     }
-
-    public function getPrecio(): ? float{ 
-        return $this ->precio;
-    }
-
-    public function setPrecio(float $precio){
-        $this -> precio = $precio;
-    }
     
     public function getStock(): ? int{
         return $this ->stock;
@@ -62,22 +51,6 @@ class Producto{
 
     public function setRuta_imagen(?string $ruta_imagen){
         $this -> ruta_imagen = $ruta_imagen;
-    }
-
-    public function getTalle(): ? int{
-        return $this ->talle;
-    }
-
-    public function setTalle(int $talle){
-        $this -> talle = $talle;
-    }
-
-    public function getColor(): ? string{
-        return $this ->color;
-    }
-
-    public function setColor(string $color){
-        $this -> color = $color;
     }
 
     public function getDesc(): ? string{
@@ -144,8 +117,7 @@ class Producto{
 
     public function Listar() {
         try {
-            $consulta = $this->pdo->prepare("SELECT p.*, 
-            c.nombre AS categoria_nombre,col.nombre AS colores_nombre,tal.nombre AS tallas_nombre FROM producto p LEFT JOIN categoria c ON p.categoria = c.ID_categoria LEFT JOIN c_colores col ON p.color = col.ID_colores LEFT JOIN c_talla tal ON p.talle = tal.ID_talla;");
+            $consulta = $this->pdo->prepare("SELECT p.*,c.nombre AS categoria_nombre FROM producto p LEFT JOIN categoria c ON p.categoria = c.ID_categoria;");
             $consulta->execute();
             return $consulta->fetchAll(PDO::FETCH_OBJ); // Trae todos los resultados
         } catch (Exception $e) {
@@ -155,13 +127,7 @@ class Producto{
 
     public function ListarPaginado($inicio, $cantidad) {
         try {
-            $consulta = $this->pdo->prepare("SELECT p.*, 
-                c.nombre AS categoria_nombre, col.nombre AS colores_nombre,tal.nombre AS tallas_nombre 
-                FROM producto p 
-                LEFT JOIN categoria c ON p.categoria = c.ID_categoria 
-                LEFT JOIN c_colores col ON p.color = col.ID_colores 
-                LEFT JOIN c_talla tal ON p.talle = tal.ID_talla
-                LIMIT ? OFFSET ?");
+            $consulta = $this->pdo->prepare("SELECT p.*,c.nombre AS categoria_nombre FROM producto p LEFT JOIN categoria c ON p.categoria = c.ID_categoria LIMIT ? OFFSET ?");
             $consulta->bindParam(1, $cantidad, PDO::PARAM_INT);
             $consulta->bindParam(2, $inicio, PDO::PARAM_INT);
             $consulta->execute();
@@ -189,10 +155,7 @@ class Producto{
             $p = new Producto();
             $p->setID_producto($r->ID_producto);
             $p->setNombre($r->nombre);
-            $p->setPrecio($r->precio);
             $p->setStock($r->stock);
-            $p->setTalle($r->talle);
-            $p->setColor($r->color);
             $p->setEstado($r->estado);
             $p->setRuta_imagen($r->ruta_imagen);
             $p->setGenero($r->genero);
@@ -208,14 +171,11 @@ class Producto{
 
     public function Insertar(Producto $p){
         try{
-            $consulta="INSERT INTO producto(nombre,precio,stock,talle,color,estado,genero,categoria,descripcion,ruta_imagen) VALUES(?,?,?,?,?,?,?,?,?,?);";
+            $consulta="INSERT INTO producto(nombre,stock,estado,genero,categoria,descripcion,ruta_imagen) VALUES(?,?,?,?,?,?,?);";
             $this->pdo->prepare($consulta)
                     ->execute(array(
                         $p->getNombre(),
-                        $p->getPrecio(),
                         $p->getStock(),
-                        $p->getTalle(),
-                        $p->getColor(),
                         $p->getEstado(),
                         $p->getGenero(),
                         $p->getCategoria(),
@@ -227,7 +187,7 @@ class Producto{
             $lastInsertId = $this->pdo->lastInsertId();
             $p->setID_producto($lastInsertId);  // Asignamos el ID generado al objeto $p TOMO EL ID PARA PODER GUARDAR LAS VARIACIONES
             
-            $this->GuardarVariaciones($p);
+            $this->GuardarVariaciones($p->getID_producto());
 
             // Guardar imágenes adicionales
             $this->GuardarImagenesAdicionales($p);
@@ -243,10 +203,7 @@ class Producto{
         try{
             $consulta="UPDATE producto SET 
             nombre = ?,
-            precio = ?,
             stock = ?,
-            talle = ?,
-            color = ?,
             estado = ?,
             genero = ?,
             categoria = ?,
@@ -256,10 +213,7 @@ class Producto{
             $this->pdo->prepare($consulta)
                     ->execute(array(
                         $p->getNombre(),
-                        $p->getPrecio(),
                         $p->getStock(),
-                        $p->getTalle(),
-                        $p->getColor(),
                         $p->getEstado(),
                         $p->getGenero(),
                         $p->getCategoria(),
@@ -267,7 +221,7 @@ class Producto{
                         $p->getRuta_imagen(),
                         $p->getID_producto()
             ));
-            $this->GuardarVariaciones($p);
+            $this->GuardarVariaciones($p->getID_producto());
             
             //Insertar imágenes adicionales si existen
             if (!empty($_FILES['Otras_imagenes']['name'][0])) {
@@ -331,12 +285,31 @@ class Producto{
         }
     }
 
-    public function GuardarVariaciones(Producto $p){
+    public function GuardarVariaciones($idProd){
         $idVariante = $_POST['id_variante'] ?? [];
         $talla = $_POST['talla'] ?? [];
         $color = $_POST['color'] ?? [];
         $precioVariante = $_POST['precio_variante'] ?? [];
         $stockVariante = $_POST['stock_variante'] ?? [];
+
+
+        // 1) Borra las variantes que el form ya no envía:
+        if (count($idVariante)) {
+            // construye un placeholder por cada id
+            $ph = implode(',', array_fill(0, count($idVariante), '?'));
+            // el primer parámetro es el ID_producto
+            $stmt = $this->pdo->prepare(
+            "DELETE FROM productos_variantes 
+                WHERE ID_producto = ? 
+                AND ID_producvar NOT IN ($ph)"
+            );
+            $stmt->execute(array_merge([$idProd], $idVariante));
+        } else {
+            // si no quedó ninguna id_variante en POST, borra todas
+            $this->pdo
+                ->prepare("DELETE FROM productos_variantes WHERE ID_producto = ?")
+                ->execute([$idProd]);
+        }
 
         if(count($talla)== count($color) && count($talla)== count($precioVariante) && count($talla)== count($stockVariante)){
             $sql = "INSERT INTO productos_variantes(ID_producto,ID_talla,ID_color,precio,stock)VALUES(?,?,?,?,?)";
@@ -354,33 +327,44 @@ class Producto{
                 if(isset($idVariante[$i])&& !empty($idVariante[$i])){
                     $stmUpdate->execute([$idTalla,$idColor,$precio,$stock,$idVariante[$i]]);
                 }else {
-                    $stm->execute([$p->getID_producto(),$idTalla,$idColor,$precio,$stock]);
+                    $stm->execute([$idProd,$idTalla,$idColor,$precio,$stock]);
                 }
 
             }
         }
     }
 
-    public function MostrarVariaciones(Producto $p){
+    public function MostrarVariaciones($idProd){
         try {
-            $consulta = $this->pdo->prepare("SELECT ID_producvar,ID_talla,ID_color,precio,stock FROM productos_variantes WHERE ID_producto = ? ");
-            $consulta->execute([$p->getID_producto()]);
+            $consulta = $this->pdo->prepare("SELECT pv.ID_producvar, pv.ID_talla, tal.nombre AS tallas_nombre, pv.ID_color, col.nombre AS colores_nombre, pv.precio, pv.stock FROM productos_variantes pv LEFT JOIN c_talla tal  ON pv.ID_talla  = tal.ID_talla LEFT JOIN c_colores col ON pv.ID_color  = col.ID_colores WHERE pv.ID_producto = ?");
+            $consulta->execute([$idProd]);
             return $consulta->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             die("Error al obtener las variaciones: " . $e->getMessage());
         }
     }
+
+    public function BorrarVariante($idVariante) {
+        $stmt = $this->pdo->prepare(
+            "DELETE FROM productos_variantes WHERE ID_producvar = ?"
+        );
+        $stmt->execute([$idVariante]);
+    }
+
+
+
     public function buscarProductos($termino) {
-        $query = $this->pdo->prepare("
-            SELECT p.ID_producto, p.nombre, p.precio, p.stock, p.talle, c.nombre AS colores_nombre, cat.nombre AS categoria_nombre, p.estado,  p.genero, p.descripcion, p.ruta_imagen,tal.nombre AS tallas_nombre 
-        FROM producto p
-        LEFT JOIN c_colores c ON p.color = c.ID_colores
-        LEFT JOIN categoria cat ON p.categoria = cat.ID_categoria
-        LEFT JOIN c_talla tal ON p.talle = tal.ID_talla
-        WHERE p.nombre LIKE :termino
+        $query = $this->pdo->prepare(" SELECT p.*,c.nombre AS categoria_nombre FROM producto p LEFT JOIN categoria c ON p.categoria = c.ID_categoria WHERE p.nombre LIKE :termino
         ");
         $query->execute([':termino' => "%$termino%"]);
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        $productos = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        // Agregar las variantes a cada producto
+        foreach ($productos as &$producto) {
+            $producto['variantes'] = $this->MostrarVariaciones($producto['ID_producto']);
+        }
+
+        return $productos;
     }
 
     public function GuardarImagenesAdicionales(Producto $p) {
