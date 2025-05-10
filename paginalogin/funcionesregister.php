@@ -93,16 +93,32 @@
         return false;
     }
 
-    function mostrarMensajes(array $errors){
+    function mostrarMensajesLogin(array $errors){
         if(count($errors) > 0){
-            echo '<div class="alert alert-warning alert-dismissible fade show" role="alert"><ul>';
+            echo '<div class="toast-error" id="toastError">';
+            echo '<ul>';
             foreach($errors as $error){
-                echo '<li>'. $error . '</li>';
+                echo '<li>' . htmlspecialchars($error) . '</li>';
             }
             echo '</ul>';
-            echo ' <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+            echo '</div>';
+    
+            // Agregamos el script inline para cerrarlo automáticamente o manualmente
+            echo '
+            <script>
+                function cerrarToast() {
+                    const toast = document.getElementById("toastError");
+                    toast.style.animation = "fadeOut 0.5s ease forwards";
+                }
+    
+                setTimeout(() => {
+                    const toast = document.getElementById("toastError");
+                    if (toast) toast.remove();
+                }, 5500);
+            </script>';
         }
     }
+    
 
     function validaToken($id, $token,$conexion)
     {

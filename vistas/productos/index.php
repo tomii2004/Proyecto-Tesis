@@ -52,7 +52,11 @@
                   <tr>
                     <td><?= htmlspecialchars($r->ID_producto) ?></td>
                     <td><?= htmlspecialchars($r->nombre) ?></td>
-                    <td><?= htmlspecialchars($r->precio)?></td>
+                    <td>
+                      <?php foreach($r->variantes as $var): ?>
+                        <?= htmlspecialchars($var['precio']) ?> <br>
+                      <?php endforeach; ?>
+                    </td>
                     <td>
                       <div class="stock-buttons">
                         <span id="stock-<?= htmlspecialchars($r->ID_producto) ?>"> <?= htmlspecialchars($r->stock) ?> </span>
@@ -60,8 +64,16 @@
                         <button class="btn-custom min " onclick="modificarStock(<?= htmlspecialchars($r->ID_producto) ?>, 'decrementar')">-</button>
                       </div>
                     </td>
-                    <td><?= htmlspecialchars(ucfirst($r->tallas_nombre)) ?></td>
-                    <td><?= htmlspecialchars($r->colores_nombre) ?></td>
+                    <td>
+                      <?php foreach($r->variantes as $var): ?>
+                        <?= htmlspecialchars(ucfirst($var['tallas_nombre'])) ?> <br>
+                      <?php endforeach; ?>
+                    </td>
+                    <td>
+                      <?php foreach($r->variantes as $var): ?>
+                        <?= htmlspecialchars($var['colores_nombre']) ?> <br>
+                      <?php endforeach; ?>
+                    </td>
                     <td class="estado-<?= htmlspecialchars($r->ID_producto) ?> <?= $r->estado == 1 ? 'text-activo' : 'text-inactivo' ?>">
                       <span id="estado-<?= htmlspecialchars($r->ID_producto) ?>">
                         <?= $r->estado == 1 ? 'Activo' : 'Inactivo' ?>
@@ -148,70 +160,72 @@ function modificarStock(id, accion) {
 }
 </script>
 <script>
-  document.getElementById('buscador').addEventListener('input', function () {
-    const termino = this.value;
+document.getElementById('buscador').addEventListener('input', function () {
+  const termino = this.value;
+  const paginacion = document.querySelector('nav[aria-label="Page navigation"]');
+  paginacion.style.display = termino ? 'none' : 'block';
 
-    // Oculta la paginación si hay un término de búsqueda
-    const paginacion = document.querySelector('nav[aria-label="Page navigation"]');
-    if (termino) {
-      paginacion.style.display = 'none';
-    } else {
-      paginacion.style.display = 'block';
-    }
-    fetch(`?c=producto&a=BuscarAjax&termino=${encodeURIComponent(termino)}`)
-      .then(response => response.json())
-      .then(data => {
-        const tbody = document.querySelector('#tablaproductos tbody');
-        tbody.innerHTML = ''; // Limpia la tabla
-        if (data.length > 0) {
-          data.forEach(producto => {
-            // Construye las filas de la tabla
-            const row = `
-              <tr>
-                <td>${producto.ID_producto}</td>
-                <td>${producto.nombre}</td>
-                <td>${producto.precio}</td>
-                <td>
-                  <div class="stock-buttons">
-                    <span id="stock-${producto.ID_producto}">${producto.stock}</span>
-                    <button class="btn-custom max" onclick="modificarStock(${producto.ID_producto}, 'incrementar')">+</button>
-                    <button class="btn-custom min" onclick="modificarStock(${producto.ID_producto}, 'decrementar')">-</button>
-                  </div>
-                </td>
-                <td>${producto.tallas_nombre}</td>
-                <td>${producto.colores_nombre}</td>
-                <td class="estado-${producto.ID_producto} ${producto.estado == 1 ? 'text-activo' : 'text-inactivo'}">
-                  <span id="estado-${producto.ID_producto}">
-                    ${producto.estado == 1 ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td>${producto.genero}</td>
-                <td>${producto.categoria_nombre}</td>
-                <td>${producto.descripcion}</td>
-                <td>
-                  ${producto.ruta_imagen ? `<img src="${producto.ruta_imagen}" style="width: 100px; height: auto;">` : 'Sin Imagen'}
-                </td>
-                <td>
-                  <a class="btn btn-info btn-flat btn-equal-size" href="?c=producto&a=FormCrear&id=${producto.ID_producto}">
-                    <i class="fa fa-lg fa-refresh"></i>
-                  </a>
-                  <a id="btn-estado-${producto.ID_producto}" class="btn btn-warning btn-flat btn-equal-size" href="?c=producto&a=CambiarEstado&id=${producto.ID_producto}&estado=${producto.estado == 1 ? 0 : 1}">
-                    ${producto.estado == 1 ? 'X' : '✓'}
-                  </a>
-                </td>
-              </tr>
-            `;
-            tbody.innerHTML += row;
+  fetch(`?c=producto&a=BuscarAjax&termino=${encodeURIComponent(termino)}`)
+    .then(response => response.json())
+    .then(data => {
+      const tbody = document.querySelector('#tablaproductos tbody');
+      tbody.innerHTML = '';
+
+      if (data.length > 0) {
+        data.forEach(producto => {
+          // Armar contenido múltiple por variante (talla, color, precio)
+          let precios = '', tallas = '', colores = '';
+          producto.variantes.forEach(vari => {
+            precios += `${vari.precio}<br>`;
+            tallas += `${vari.tallas_nombre.charAt(0).toUpperCase() + vari.tallas_nombre.slice(1)}<br>`;
+            colores += `${vari.colores_nombre}<br>`;
           });
-        }else{
-          tbody.innerHTML = '<tr><td colspan="12">No hay resultados.</td></tr>';
-        }
-      })
-      .catch(error => console.error('Error:', error));
-  });
-  document.getElementById('clear-buscador').addEventListener('click', function () {
-        const buscador = document.getElementById('buscador');
-        buscador.value = ''; // Limpia el valor del input
-        buscador.dispatchEvent(new Event('input')); // Simula un evento de entrada para actualizar los resultados
-    });
+
+          const row = `
+            <tr>
+              <td>${producto.ID_producto}</td>
+              <td>${producto.nombre}</td>
+              <td>${precios}</td>
+              <td>
+                <div class="stock-buttons">
+                  <span id="stock-${producto.ID_producto}">${producto.stock}</span>
+                  <button class="btn-custom max" onclick="modificarStock(${producto.ID_producto}, 'incrementar')">+</button>
+                  <button class="btn-custom min" onclick="modificarStock(${producto.ID_producto}, 'decrementar')">-</button>
+                </div>
+              </td>
+              <td>${tallas}</td>
+              <td>${colores}</td>
+              <td class="estado-${producto.ID_producto} ${producto.estado == 1 ? 'text-activo' : 'text-inactivo'}">
+                <span id="estado-${producto.ID_producto}">${producto.estado == 1 ? 'Activo' : 'Inactivo'}</span>
+              </td>
+              <td>${producto.genero}</td>
+              <td>${producto.categoria_nombre.charAt(0).toUpperCase() + producto.categoria_nombre.slice(1)}</td>
+              <td>${producto.descripcion}</td>
+              <td>
+                ${producto.ruta_imagen ? `<img src="${producto.ruta_imagen}" style="width: 100px; height: auto;">` : 'Sin Imagen'}
+              </td>
+              <td>
+                <a class="btn btn-info btn-flat btn-equal-size" href="?c=producto&a=FormCrear&id=${producto.ID_producto}">
+                  <i class="fa fa-lg fa-pencil-alt"></i>
+                </a>
+                <a id="btn-estado-${producto.ID_producto}" class="btn btn-warning btn-flat btn-equal-size" href="?c=producto&a=CambiarEstado&id=${producto.ID_producto}&estado=${producto.estado == 1 ? 0 : 1}">
+                  ${producto.estado == 1 ? 'X' : '✓'}
+                </a>
+              </td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="12">No hay resultados.</td></tr>';
+      }
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+document.getElementById('clear-buscador').addEventListener('click', function () {
+  const buscador = document.getElementById('buscador');
+  buscador.value = '';
+  buscador.dispatchEvent(new Event('input'));
+});
 </script>

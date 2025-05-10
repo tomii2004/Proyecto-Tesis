@@ -44,17 +44,45 @@
 	require '../modelos/configproduct-detail.php';
 	
 
-	$productos = isset($_SESSION['carrito']['productos']) ? $_SESSION['carrito']['productos'] : null;
-
+	$productos = isset($_SESSION['carrito']['variantes']) ? $_SESSION['carrito']['variantes'] : [];
+	// echo '<pre>';
 	// print_r($_SESSION);
-	
+	// echo '</pre>';
 	
 	$lista_carrito = array();
 	if($productos != null){
-		foreach($productos as $clave => $cantidad){ // la clave es el id del producto 
-			$consulta_productos = $conexion -> prepare("SELECT * ,$cantidad AS cantidad FROM producto WHERE ID_producto = ? AND estado = 1; ");
-			$consulta_productos ->execute([$clave]);
-			$lista_carrito[] = $consulta_productos -> fetch(PDO::FETCH_ASSOC); // va a traer producto por producto 
+		
+		foreach($productos as $clave => $cantidad){
+			// Separar ID_producto e ID_variante
+			$partes = explode('-', $clave);
+			$id_producto = $partes[0];
+			$id_talla = $partes[1];
+			$id_color = $partes[2];
+
+
+			$id_variante = isset($cantidad['id_variante']) ? $cantidad['id_variante'] : null;
+			$cantidad = isset($cantidad['cantidad']) ? intval($cantidad['cantidad']) : 1;
+		
+			// Traer los datos del producto
+			$consulta_productos = $conexion->prepare("
+				SELECT p.*, pv.precio, pv.stock, pv.ID_producvar, t.nombre AS talla, c.nombre AS color, :cantidad AS cantidad
+				FROM producto p
+				JOIN productos_variantes pv ON pv.ID_producto = p.ID_producto
+				LEFT JOIN c_talla t ON t.ID_talla = pv.ID_talla
+				LEFT JOIN c_colores c ON c.ID_colores = pv.ID_color
+				WHERE p.ID_producto = :id_producto AND pv.ID_producvar = :id_variante AND p.estado = 1
+			");
+			$consulta_productos->execute([
+				':id_producto' => $id_producto,
+				':id_variante' => $id_variante,
+				':cantidad' => $cantidad
+			]);
+			$producto = $consulta_productos->fetch(PDO::FETCH_ASSOC);
+			if($producto) {
+				$producto['clave'] = $clave; // Guardamos la clave completa para usar en el ID/JS
+				$producto['cantidad'] = $cantidad;
+				$lista_carrito[] = $producto;
+			}
 		}
 	}
 
@@ -104,13 +132,15 @@
 									}else{
 										$total = 0;
 										foreach($lista_carrito as $producto){
-											$id = $producto['ID_producto'];
+											$id = $producto['clave'];
 											$nombre = $producto['nombre'];
 											$precio = $producto['precio'];
 											$cantidad = $producto['cantidad'];
 											$imagen = '../'. $producto['ruta_imagen'];
 											$subtotal = $cantidad * $precio;
 											$total += $subtotal;
+											$talle = $producto['talla'];
+											$color = $producto['color'];
 										
 								?>
 								<tr class="table_row">
@@ -120,27 +150,32 @@
 											<img src="<?php echo $imagen ?>" alt="IMG">
 										</div>
 									</td>
-									<td class="column-2 js-name-detail"><?php echo $nombre; ?></td>
+									<td class="column-2 js-name-detail">
+										<?php echo $nombre; ?><br>
+										<span class="stext-111 cl6"><strong>Talle:</strong> <?php echo $talle; ?></span><br>
+										<span class="stext-111 cl6"><strong>Color:</strong> <?php echo $color; ?></span>
+									</td>
 									<td class="column-3"><?php echo MONEY; ?><?php echo number_format($precio,2,'.',','); ?></td>
 									<td class="column-4">
 										<div class="quantity-selector">
-											<div onclick="cambiarCantidad(-1, <?php echo $id; ?>)">
+											<div onclick="cambiarCantidad(-1, '<?php echo $id; ?>')">
 												<i class="decrement fs-16 zmdi zmdi-minus"></i>
 											</div> 
 
-											<input class="mtext-104 cl3 txt-center num-product" type="number" name="num-product1" max="10" min="1" value="<?php echo $cantidad;?>" id="cantidad_<?php echo $id;?>" onchange="actualizaCantidad(this.value,<?php echo $id;?>)">
+											<?php $id_html = str_replace('|', '_', $id); ?>
+											<input class="mtext-104 cl3 txt-center num-product" type="number" name="num-product1" max="10" min="1" value="<?php echo $cantidad;?>" id="cantidad_<?php echo $id_html;?>" onchange="actualizaCantidad(this.value,'<?php echo $id;?>')">
 
-											<div onclick="cambiarCantidad(1, <?php echo $id; ?>)">
+											<div onclick="cambiarCantidad(1, '<?php echo $id; ?>')">
 												<i class="increment fs-16 zmdi zmdi-plus"></i>
 											</div>
 										</div>
 									</td>
 									<td class="column-5">
-										<div id= "subtotal_<?php echo $id?>" name="subtotal[]">
+										<div id= "subtotal_<?php echo $id_html?>" name="subtotal[]">
 											<?php echo MONEY; ?><?php echo number_format($subtotal,2,'.',','); ?>
 										</div>
 									</td>
-									<td><a id= "eliminar" class="btn btn-warning btn-sm" data-bs-id="<?php echo $id; ?>" data-bs-toggle="modal" data-bs-target="#eliminaModal">Eliminar</a></td>
+									<td><a id= "eliminar" class="btn btn-danger btn-sm text-white" data-bs-id="<?php echo $id; ?>" data-bs-toggle="modal" data-bs-target="#eliminaModal">Eliminar</a></td>
 								</tr>
 								<?php }}?>
 							</table>
@@ -182,7 +217,7 @@
 							</div>
 						</div>
 
-						<!-- <div class="flex-w flex-t bor12 p-t-15 p-b-30">
+						<div class="flex-w flex-t bor12 p-t-15 p-b-30">
 							<div class="size-208 w-full-ssm">
 								<span class="stext-110 cl13">
 									Envio:
@@ -199,17 +234,12 @@
 										Calcular Envio
 									</span>
 
-									<div class="rs1-select2 rs2-select2 bor8 bg0 m-b-12 m-t-9">
-										<select class="js-select2" name="time">
-											<option>Seleccionar Pais</option>
-											<option>USA</option>
-											<option>ARG</option>
-										</select>
-										<div class="dropDownSelect2"></div>
+									<div class="bor8 bg0 m-b-12">
+										<input class="stext-111 cl8 plh3 size-111 p-lr-15" type="text" name="ciudad" placeholder="Ciudad / Provincia">
 									</div>
 
 									<div class="bor8 bg0 m-b-12">
-										<input class="stext-111 cl8 plh3 size-111 p-lr-15" type="text" name="state" placeholder="Ciudad / Provincia">
+										<input class="stext-111 cl8 plh3 size-111 p-lr-15" type="text" name="direccion" placeholder="Direccion">
 									</div>
 
 									<div class="bor8 bg0 m-b-22">
@@ -218,7 +248,7 @@
 									
 									<div class="flex-w">
 										<div class="flex-c-m stext-101 cl13 size-115 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer">
-											Modificar Total
+											Calcular
 										</div>
 									</div>
 										
@@ -226,7 +256,7 @@
 							</div>
 						</div>
 
-						<div class="flex-w flex-t p-t-27 p-b-33">
+						<!-- <div class="flex-w flex-t p-t-27 p-b-33">
 							<div class="size-208">
 								<span class="mtext-101 cl13">
 									Total con envio (falta hacer):
@@ -238,7 +268,7 @@
 									$79.65
 								</span>
 							</div>
-						</div> -->
+						</div>  -->
 						<?php if($lista_carrito != null){ ?>
 
 							<?php if(isset($_SESSION['user_cliente'])) {?>
@@ -279,7 +309,10 @@
 <!--===============================================================================================-->
     <script>
 		function cambiarCantidad(cantidad, id) {
-			let inputCantidad = document.getElementById("cantidad_" + id);
+			console.log("Click detectado:", cantidad, id);
+			let id_html = id.replace('|', '_');
+			let inputCantidad = document.getElementById("cantidad_" + id_html);
+			console.log("inputCantidad encontrado:", inputCantidad);
 			let cantidadActual = parseInt(inputCantidad.value);
 
 			// Aumentar o disminuir según el cantidad
@@ -287,14 +320,12 @@
 
 			// Asegurarse de que no sea menor que 1
 			if (nuevaCantidad < 1) {
-				nuevaCantidad = 1;
+				return;
 			}
 
-			// Actualizar el valor del input
 			inputCantidad.value = nuevaCantidad;
 
-			// Llamar a la función para actualizar el subtotal
-			actualizaCantidad(nuevaCantidad, id);
+			actualizaCantidad(nuevaCantidad, id, cantidadActual);
 		}
 	</script>							
 
@@ -307,91 +338,106 @@
 			let id = button.getAttribute('data-bs-id') //obtenemos el id que estamos pasando desde el boton
 			let buttonElimina = eliminaModal.querySelector('.modal-footer #btn-elimina') //buscamos el boton al que le vamos a pasar el id,accedemos a la clase y luego al id
 			buttonElimina.value = id
+			
 		})
-
-		function actualizaCantidad(cantidad,id){
+		
+		const MONEDA = "<?php echo MONEY; ?>";
+		
+		function actualizaCantidad(cantidad, id,cantidadAnterior) {
+			console.log("Cantidad enviada:", cantidad);
 			if (cantidad < 1) {
 				alert("La cantidad debe ser al menos 1.");
-				return
+				return;
 			}
+
+			const id_html = id.replace('|', '_');
+			let inputCantidad = document.getElementById("cantidad_" + id_html);
+
 			let url = 'clases/actualizarcarrito.php';
 			let formData = new FormData();
-			//enviamos los datos
-			formData.append('id',id);
-			formData.append('action','agregar');
-			formData.append('cantidad',cantidad);
-			
-			//enviamos configuraciones a esa url mediante metodo post
-			fetch(url,{
+
+			formData.append('id_variante', id);
+			formData.append('action', 'agregar');
+			formData.append('cantidad', cantidad);
+
+			fetch(url, {
 				method: 'POST',
 				body: formData,
 				mode: 'cors'
 			})
 			.then(response => response.json())
-			.then(data =>{
-				if(data.ok){
-					let divsubtotal = document.getElementById("subtotal_" + id)
-					divsubtotal.innerHTML = data.sub
+			.then(data => {
+				console.log("Respuesta del servidor:", data);
+				if (data.ok) {
+					// ✅ Actualizar cantidad visualmente
+					inputCantidad.value = cantidad;
 
-					let total = 0.00
-					let list = document.getElementsByName('subtotal[]')
+					// ✅ Actualizar subtotal del producto
+					let divsubtotal = document.getElementById("subtotal_" + id_html);
+					divsubtotal.innerHTML = MONEDA + data.sub;
 
-					for(let i = 0; i < list.length; i++){
-						total += parseFloat(list[i].innerHTML.replace(/[<?php echo MONEY ?>,]/g,'')) //esto para eliminar el signo pesos y las comas
+					// ✅ Recalcular total sumando todos los subtotales
+					let total = 0.00;
+					let list = document.getElementsByName('subtotal[]');
+					for (let i = 0; i < list.length; i++) {
+						let valor = list[i].innerHTML.replace(/[^\d.-]/g, '');
+						total += parseFloat(valor);
 					}
 
-					total = new Intl.NumberFormat('en-US',{
-						minimumFractionDigits: 2
-					}).format(total)
-					document.getElementById('total').innerHTML = '<?php echo MONEY;?>' + total
-				}else {
-					let inputCantidad = document.getElementById("cantidad_" + id)
-					inputCantidad.value = data.cantidadAnterior
-					
-            		//Animacion de insuficiente stock
-					let nameProductError = $(".js-name-detail").html();
-            		swal({
-						title: nameProductError, 
-						text: "¡No hay suficientes existencias!", 
-						icon: "error",
-						timer: 2000,  // El mensaje se cierra automáticamente después de 3 segundos (3000 milisegundos)
-						buttons: false,  // No muestra botones (opcional)
-					});
+					// ✅ Mostrar total formateado con símbolo de moneda
+					total = new Intl.NumberFormat('en-US', {
+						minimumFractionDigits: 2,
+						maximumFractionDigits: 2
+					}).format(total);
 
-					
-        		}
+					document.getElementById('total').innerHTML = MONEDA + total;
+
+				} else {
+					// ❌ Cantidad inválida o sin stock: restauramos la cantidad anterior
+					inputCantidad.value = cantidadAnterior;
+
+					// ❌ Alerta de error
+					let nameProductError = $(".js-name-detail").html();
+					Swal.fire({
+						html: nameProductError + "<br><br>¡No hay suficientes existencias!",
+						icon: "error",
+						showConfirmButton: false,
+						timer: 2000
+					});
+				}
 			})
-			.catch(error => console.error("Error en la solicitud:", error));
+			.catch(error => {
+				console.error("Error en la solicitud:", error);
+				inputCantidad.value = cantidadAnterior;
+			});
+			
 		}
 
-
 		function eliminar(){
-			let botonElimina = document.getElementById("btn-elimina")
-			let id = botonElimina.value
-
+			let botonElimina = document.getElementById("btn-elimina");
+			let id = botonElimina.value;
 			let url = 'clases/actualizarcarrito.php';
 			let formData = new FormData();
-			//enviamos los datos
-			formData.append('id',id);
-			formData.append('action','eliminar');
-			
-			
-			//enviamos configuraciones a esa url mediante metodo post
-			fetch(url,{
+
+			formData.append('id_variante', id);
+			formData.append('action', 'eliminar');
+
+			fetch(url, {
 				method: 'POST',
 				body: formData,
 				mode: 'cors'
 			})
 			.then(response => response.json())
-			.then(data =>{
-				if(data.ok){
-					location.reload() //para actualizar la ventana
-				}else {
-            		alert("Error al actualizar el carrito.");
-        		}
+			.then(data => {
+				if (data.ok) {
+					location.reload(); // recarga la página para reflejar cambios
+				}
 			})
-			.catch(error => console.error("Error en la solicitud:", error));
+			.catch(error => {
+				console.error("Error al eliminar producto:", error);
+			});
 		}
+
 
 
 	</script>										
@@ -435,7 +481,7 @@
 <!--===============================================================================================-->
 	<script src="js/main.js"></script>
 <!--===============================================================================================-->
-	<script src="vendor/sweetalert/sweetalert.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>
 

@@ -48,16 +48,6 @@
 
 
                         <div class="form-group">
-                          <label class="col-lg-2 control-label" for="Precio">Precio</label>
-                          <div class="col-lg-10">
-                            <input required class="form-control" name="Precio" type="number" placeholder="Precio" value="<?=$p -> getPrecio()?>">
-                            <?php if (isset($_SESSION['errores']['Precio'])): ?>
-                                <div class="invalid-feedback"><?= $_SESSION['errores']['Precio'] ?></div>
-                            <?php endif; ?>
-                          </div>
-                        </div>
-
-                        <div class="form-group">
                           <label class="col-lg-2 control-label" for="Stock">Stock</label>
                           <div class="col-lg-10">
                             <input required class="form-control" name="Stock" type="number" placeholder="Stock" value="<?=$p -> getStock()?>">
@@ -68,41 +58,6 @@
 
                         </div>
 
-                        <div class="form-group">
-                          <label class="col-lg-2 control-label" for="Talla">Talle</label>
-                          <div class="col-lg-10">
-                            <select required class="form-control" name="Talle">
-                              <option value="">Selecccionar</option>
-                              <?php foreach($tallas as $talla){ ?>
-                              <option value="<?php echo $talla['ID_talla'];?>"
-                                  <?php if (isset($selected_talla) && $talla['ID_talla'] == $selected_talla)echo 'selected'; ?>>
-                                  <?php echo ucfirst($talla['nombre']);?>
-                              </option>
-                            <?php } ?>
-                            </select>
-                            <?php if (isset($_SESSION['errores']['Talle'])): ?>
-                                <div class="invalid-feedback"><?= $_SESSION['errores']['Talle'] ?></div>
-                            <?php endif; ?>
-                          </div>
-                        </div>
-
-                        <div class="form-group">
-                          <label class="col-lg-2 control-label" for="Color">Color</label>
-                          <div class="col-lg-10">
-                            <select required class="form-control" name="Color">
-                              <option value="">Selecccionar</option>
-                              <?php foreach($colores as $color){ ?>
-                              <option value="<?php echo $color['ID_colores'];?>"
-                                  <?php if (isset($selected_color) && $color['ID_colores'] == $selected_talla)echo 'selected'; ?>>
-                                  <?php echo ucfirst($color['nombre']);?>
-                              </option>
-                            <?php } ?>
-                            </select>
-                            <?php if (isset($_SESSION['errores']['Color'])): ?>
-                                <div class="invalid-feedback"><?= $_SESSION['errores']['Color'] ?></div>
-                            <?php endif; ?>
-                          </div>
-                        </div>
 
                         <div class="form-group">
                             <label class="col-lg-2 control-label" for="Estado">Estado:</label>
@@ -177,104 +132,111 @@
                         <div id="contenido">
 
                           <?php foreach($variantes as $variante){?>
+                            <div class="variant-block">
+                              <input type="hidden" name="id_variante[]" value="<?php echo $variante['ID_producvar']?>">
+                            
+                              <div class="form-group">
+                                <label class="col-lg-2 control-label" for="Talla">Talle</label>
+                                <div class="col-lg-10">
+                                  <select class="form-control" name="talla[]">
+                                    <option value="">Selecccionar</option>
+                                    <?php foreach($tallas as $talla){ ?>
+                                      <option value="<?php echo $talla['ID_talla'];?>"
+                                        <?php if($talla['ID_talla'] == $variante['ID_talla'])echo 'selected'; ?>>
+                                        <?php echo $talla['nombre'];?>
+                                    </option>
+                                  <?php } ?>
+                                  </select>
+                                </div>
+                              </div>
 
-                            <div class="form-group">
-                            <input type="hidden" name="id_variante[]" value="<?php echo $variante['ID_producvar']?>">
+                              <div class="form-group">
+                                <label class="col-lg-2 control-label" for="Color">Color</label>
+                                <div class="col-lg-10">
+                                  <select class="form-control" name="color[]">
+                                    <option value="">Selecccionar</option>
+                                    <?php foreach($colores as $color){ ?>
+                                    <option value="<?php echo $color['ID_colores'];?>"
+                                        <?php if($color['ID_colores'] == $variante['ID_color'])echo 'selected'; ?>>
+                                        <?php echo $color['nombre'];?>
+                                    </option>
+                                  <?php } ?>
+                                  </select>
+                                </div>
+                              </div>
 
-                            <label class="col-lg-2 control-label" for="Talla">Talle</label>
-                            <div class="col-lg-10">
-                              <select class="form-control" name="talla[]">
-                                <option value="">Selecccionar</option>
-                                <?php foreach($tallas as $talla){ ?>
-                                  <option value="<?php echo $talla['ID_talla'];?>"
-                                    <?php if($talla['ID_talla'] == $variante['ID_talla'])echo 'selected'; ?>>
-                                    <?php echo $talla['nombre'];?>
-                                </option>
-                              <?php } ?>
-                              </select>
+                              <div class="form-group">
+                                <label class="col-lg-2 control-label" for="Precio">Precio</label>
+                                <div class="col-lg-10">
+                                  <input class="form-control" name="precio_variante[]" type="text" placeholder="Precio" value="<?php echo $variante['precio']?>">
+                                </div>
+                              </div>
+
+                              <div class="form-group">
+                                <label class="col-lg-2 control-label" for="Stock">Stock</label>
+                                <div class="col-lg-10">
+                                  <input class="form-control" name="stock_variante[]" type="text" placeholder="Stock" value="<?php echo $variante['stock']?>">
+                                </div>
+                                <div class="col-lg-10 col-lg-offset-2">
+                                  <button type="button" class="btn btn-danger btn-remove-variante">Eliminar</button>
+                                </div>
+                              </div>
+                              <hr style="border: 1px  solid #ccc;">
                             </div>
-                          </div>
-
-                          <div class="form-group">
-                            <label class="col-lg-2 control-label" for="Color">Color</label>
-                            <div class="col-lg-10">
-                              <select class="form-control" name="color[]">
-                                <option value="">Selecccionar</option>
-                                <?php foreach($colores as $color){ ?>
-                                <option value="<?php echo $color['ID_colores'];?>"
-                                    <?php if($color['ID_colores'] == $variante['ID_color'])echo 'selected'; ?>>
-                                    <?php echo $color['nombre'];?>
-                                </option>
-                              <?php } ?>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div class="form-group">
-                            <label class="col-lg-2 control-label" for="Precio">Precio</label>
-                            <div class="col-lg-10">
-                              <input class="form-control" name="precio_variante[]" type="text" placeholder="Precio" value="<?php echo $variante['precio']?>">
-                            </div>
-                          </div>
-
-                          <div class="form-group">
-                            <label class="col-lg-2 control-label" for="Stock">Stock</label>
-                            <div class="col-lg-10">
-                              <input class="form-control" name="stock_variante[]" type="text" placeholder="Stock" value="<?php echo $variante['stock']?>">
-                            </div>
-                          </div>
-                          <hr style="border: 1px  solid #ccc;">
-
                           <?php } ?>
                         </div>
-
+                        
 
 
 
                         <template id="plantilla_variante">
-                          <div class="form-group">
-                            <label class="col-lg-2 control-label" for="Talla">Talle</label>
-                            <div class="col-lg-10">
-                              <select class="form-control" name="talla[]">
-                                <option value="">Selecccionar</option>
-                                <?php foreach($tallas as $talla){ ?>
-                                  <option value="<?php echo $talla['ID_talla'] ?>">
-                                      <?php echo $talla['nombre'] ?>
+                          <div class="variant-block">
+                            <div class="form-group">
+                              <label class="col-lg-2 control-label" for="Talla">Talle</label>
+                              <div class="col-lg-10">
+                                <select class="form-control" name="talla[]">
+                                  <option value="">Selecccionar</option>
+                                  <?php foreach($tallas as $talla){ ?>
+                                    <option value="<?php echo $talla['ID_talla'] ?>">
+                                        <?php echo $talla['nombre'] ?>
+                                    </option>
+                                <?php } ?>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="form-group">
+                              <label class="col-lg-2 control-label" for="Color">Color</label>
+                              <div class="col-lg-10">
+                                <select class="form-control" name="color[]">
+                                  <option value="">Selecccionar</option>
+                                  <?php foreach($colores as $color){ ?>
+                                  <option value="<?php echo $color['ID_colores'] ?>">
+                                      <?php echo $color['nombre'] ?>
                                   </option>
-                              <?php } ?>
-                              </select>
+                                <?php } ?>
+                                </select>
+                              </div>
                             </div>
-                          </div>
 
-                          <div class="form-group">
-                            <label class="col-lg-2 control-label" for="Color">Color</label>
-                            <div class="col-lg-10">
-                              <select class="form-control" name="color[]">
-                                <option value="">Selecccionar</option>
-                                <?php foreach($colores as $color){ ?>
-                                <option value="<?php echo $color['ID_colores'] ?>">
-                                    <?php echo $color['nombre'] ?>
-                                </option>
-                              <?php } ?>
-                              </select>
+                            <div class="form-group">
+                              <label class="col-lg-2 control-label" for="Precio">Precio</label>
+                              <div class="col-lg-10">
+                                <input class="form-control" name="precio_variante[]" type="text" placeholder="Precio">
+                              </div>
                             </div>
-                          </div>
 
-                          <div class="form-group">
-                            <label class="col-lg-2 control-label" for="Precio">Precio</label>
-                            <div class="col-lg-10">
-                              <input class="form-control" name="precio_variante[]" type="text" placeholder="Precio">
+                            <div class="form-group">
+                              <label class="col-lg-2 control-label" for="Stock">Stock</label>
+                              <div class="col-lg-10">
+                                <input class="form-control" name="stock_variante[]" type="text" placeholder="Stock">
+                              </div>
+                              <div class="col-lg-10 col-lg-offset-2">
+                                <button type="button" class="btn btn-danger btn-remove-variante">Eliminar</button>
+                              </div>
                             </div>
+                            <hr style="border: 1px  solid #ccc;">
                           </div>
-
-                          <div class="form-group">
-                            <label class="col-lg-2 control-label" for="Stock">Stock</label>
-                            <div class="col-lg-10">
-                              <input class="form-control" name="stock_variante[]" type="text" placeholder="Stock">
-                            </div>
-                          </div>
-                          <hr style="border: 1px  solid #ccc;">
-
                         </template>
 
 
@@ -333,6 +295,38 @@ ClassicEditor
 
     contenido.appendChild(plantilla)
   }
+  document.getElementById('contenido')
+  .addEventListener('click', function(e) {
+    if (!e.target.classList.contains('btn-remove-variante')) return;
+    // 1) Encuentra el contenedor completo:
+    const block = e.target.closest('.variant-block');
+    if (!block) return;
+
+    // 2) Saca el ID de la BD (si existe):
+    const hidden = block.querySelector('input[name="id_variante[]"]');
+    const idVar = hidden ? hidden.value : null;
+
+    // 3) Función para remover del DOM:
+    const quitarDOM = () => block.remove();
+
+    // 4) Si venía de la BD, avisa al servidor:
+    if (idVar) {
+      fetch('?c=producto&a=EliminarVarianteAjax', {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded'},
+        body: `idVariante=${encodeURIComponent(idVar)}`
+      })
+      .then(r=>r.json())
+      .then(json=>{
+        if (json.success) quitarDOM();
+        else alert('Error: '+json.message);
+      })
+      .catch(()=>alert('Error de conexión al eliminar variante.'));
+    } else {
+      // si era recién agregada, basta con quitarla del form
+      quitarDOM();
+    }
+  });
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {

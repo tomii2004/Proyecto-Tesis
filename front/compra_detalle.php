@@ -26,7 +26,24 @@ $idcompra = $rowcompra['ID_compra'];
 $fecha = new DateTime($rowcompra['fecha']);
 $fecha = $fecha ->format('d/m/Y H:i');
 
-$sqldetalle = $conexion ->prepare("SELECT ID_venta_producto,nombre,precio,cantidad FROM ventas_producto WHERE ID_compra = ?");
+$sqldetalle = $conexion->prepare("
+    SELECT 
+        vp.ID_venta_producto,
+        vp.nombre,
+        vp.precio,
+        vp.cantidad,
+        pv.ID_talla,
+        pv.ID_color,
+        t.nombre AS nombre_talla,
+        c.nombre AS nombre_color,
+        p.ruta_imagen
+    FROM ventas_producto vp
+    JOIN productos_variantes pv ON vp.ID_variante = pv.ID_producvar
+    JOIN c_talla t ON pv.ID_talla = t.ID_talla
+    JOIN c_colores c ON pv.ID_color = c.ID_colores
+    JOIN producto p ON vp.ID_producto = p.ID_producto
+    WHERE vp.ID_compra = ?
+");
 $sqldetalle -> execute([$idcompra]);
 
 ?>
@@ -65,6 +82,22 @@ $sqldetalle -> execute([$idcompra]);
 	<link rel="stylesheet" type="text/css" href="css/util.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 <!--===============================================================================================-->
+	<style>
+		table td {
+			padding: 15px 10px !important;
+			vertical-align: middle !important;
+		}
+
+		table th {
+			text-align: center;
+			vertical-align: middle;
+		}
+
+		table tr:not(:last-child) {
+			border-bottom: 1px solid #dee2e6;
+		}
+	</style>
+
 </head>
 <body class="animsition">
 
@@ -116,19 +149,29 @@ $sqldetalle -> execute([$idcompra]);
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php while($row = $sqldetalle ->fetch(PDO::FETCH_ASSOC)){
-                                        $precio = $row['precio'];
-                                        $cantidad = $row['cantidad'];
-                                        $subtotal = $precio * $cantidad;
-                                        ?>
-                                        <tr>
-                                            <td><?php echo  $row['nombre'];?></td>
-                                            <td><?php echo MONEY .' '. number_format($precio,2,',','.');?></td>
-                                            <td><?php echo  $cantidad?></td>
-                                            <td><?php echo MONEY .' '. number_format($subtotal,2,',','.');?></td>
-                                        </tr>
-
-                                    <?php } ?>
+									<?php while($row = $sqldetalle ->fetch(PDO::FETCH_ASSOC)){
+										$precio = $row['precio'];
+										$cantidad = $row['cantidad'];
+										$subtotal = $precio * $cantidad;
+										$talle = $row['nombre_talla'];
+										$color = $row['nombre_color'];
+										$imagen = !empty($row['ruta_imagen']) ? $row['ruta_imagen'] : 'imagen-no-disponible.png';
+									?>
+									<tr>
+										<td>
+											<div style="display: flex; align-items: center; gap: 10px;">
+												<img src="../<?php echo $imagen; ?>" alt="Producto" width="60" height="60" style="object-fit: cover; border-radius: 5px;">
+												<div>
+													<span><?php echo $row['nombre']; ?></span><br>
+													<small><b>Talle:</b> <?php echo $talle; ?> | <b>Color:</b> <?php echo $color; ?></small>
+												</div>
+											</div>
+										</td>
+										<td class="align-middle text-center"><?php echo MONEY .' '. number_format($precio,2,',','.');?></td>
+										<td class="align-middle text-center"><?php echo $cantidad ?></td>
+										<td class="align-middle text-center"><?php echo MONEY .' '. number_format($subtotal,2,',','.');?></td>
+									</tr>
+									<?php } ?>
                                 </tbody>
                             </table>
                         </div>

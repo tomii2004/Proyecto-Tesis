@@ -23,6 +23,12 @@ class ProductoControlador{
         // Obtener los productos paginados
         $productos = $this->modelo->ListarPaginado($inicio, $items_por_pagina);
 
+        //Para cada producto, le adjunto el array de variantes
+        foreach ($productos as &$prod) {
+            // pasarle el objeto Producto con su ID, o simplemente:
+            $prod->variantes = $this->modelo->MostrarVariaciones($prod ->ID_producto);
+        }
+
         // Obtener el total de productos para calcular páginas
         $total_productos = $this->modelo->ContarProductos();
         $total_paginas = ceil($total_productos / $items_por_pagina);
@@ -50,15 +56,12 @@ class ProductoControlador{
             $p = $this->modelo->Obtener($_GET["id"]);
             $titulo="Modificar";
 
-            $selected_color = $p->getColor(); 
-            $selected_talla = $p->getTalle(); 
-            $variantes = $this->modelo->MostrarVariaciones($p)?? [];
+            $variantes = $this->modelo->MostrarVariaciones($p->getID_producto())?? [];
         }else{
             // Asegúrate de que el estado inicial del producto sea activo (1) cuando es un nuevo producto
             $p->setEstado(1);  // Setea el estado como activo por defecto
             $variantes = [];
-            $selected_talla = null;
-            $selected_color = null;
+
         }
 
         require_once "vistas/encabezado.php";
@@ -73,17 +76,8 @@ class ProductoControlador{
         if (empty($_POST["Nombre"])) {
             $errores["Nombre"] = "El nombre es obligatorio.";
         }
-        if (empty($_POST["Precio"]) || $_POST["Precio"] <= 0) {
-            $errores["Precio"] = "El precio debe ser mayor a 0.";
-        }
         if (empty($_POST["Stock"]) || $_POST["Stock"] < 0) {
             $errores["Stock"] = "El stock debe ser mayor o igual a 0.";
-        }
-        if (empty($_POST["Talle"])) {
-            $errores["Talle"] = "Debes seleccionar un talle.";
-        }
-        if (empty($_POST["Color"])) {
-            $errores["Color"] = "Debes seleccionar un color.";
         }
         if (empty($_POST["Genero"])) {
             $errores["Genero"] = "El género es obligatorio.";
@@ -102,10 +96,7 @@ class ProductoControlador{
         $p = new Producto();
         $p->setID_producto(intval($_POST["ID_producto"]));
         $p->setNombre($_POST["Nombre"]);
-        $p->setPrecio($_POST["Precio"]);
         $p->setStock($_POST["Stock"]);
-        $p->setTalle($_POST["Talle"]);
-        $p->setColor($_POST["Color"]);
         $p->setGenero($_POST["Genero"]);
         $p->setCategoria($_POST["Categoria"]);
         $p->setDesc($_POST["Descripcion"]);
@@ -142,6 +133,10 @@ class ProductoControlador{
         $this->modelo->Actualizar($p): //si sale por el si hace esto
         $this->modelo->Insertar($p); // si sale por el no hace esto 
 
+        
+        // Guardar variantes
+        // $this->modelo->GuardarVariaciones($p->getID_producto());
+        
         header("Location: ?c=producto");
  
     }
@@ -169,6 +164,20 @@ class ProductoControlador{
             }
         }
         header('Location: ?c=producto'); // Redirigir de vuelta al listado de productos para actualizar
+    }
+
+
+    public function EliminarVarianteAjax() {
+        if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['idVariante'])) {
+            $id = intval($_POST['idVariante']);
+            try {
+                $this->modelo->BorrarVariante($id);
+                echo json_encode(['success'=>true]);
+            } catch(Exception $e) {
+                echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
+            }
+        }
+        exit;
     }
 
     public function ModificarStockAjax() {

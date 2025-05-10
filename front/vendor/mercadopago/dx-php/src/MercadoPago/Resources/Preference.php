@@ -5,14 +5,11 @@ namespace MercadoPago\Resources;
 use MercadoPago\Net\MPResource;
 use MercadoPago\Serialization\Mapper;
 
-#[\AllowDynamicProperties]
 /** Preference class. */
 class Preference extends MPResource
 {
     /** Class mapper. */
     use Mapper;
-
-    public $financing_group;
 
     /** Preference ID. */
     public ?string $id;

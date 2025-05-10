@@ -26,81 +26,83 @@
                     <a href="carrito.php" class="flex-c-m stext-101 cl0 size-107 bg3 bor2 hov-btn3 p-lr-15 trans-04 m-r-8 m-b-10">
                         Ver Carrito
                     </a>
-                    <?php if(isset($_SESSION['user_cliente'])) {?>
+                    <?php if(isset($_SESSION['user_cliente'])) { ?>
                         <a href="pago.php" class="flex-c-m stext-101 cl0 size-107 bg3 bor2 hov-btn3 p-lr-15 trans-04 m-b-10">
                             Finalizar Compra
                         </a>
-                    <?php }else { ?>
+                    <?php } else { ?>
                         <a href="../paginalogin/login.php?pago" class="flex-c-m stext-101 cl0 size-107 bg3 bor2 hov-btn3 p-lr-15 trans-04 m-b-10">
                             Finalizar Compra
                         </a>
-                    <?php }?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <script>
+    const MONEY = "<?php echo MONEY; ?>";
+
     document.addEventListener("DOMContentLoaded", function () {
         actualizarCarritoFlotante();
+
         document.getElementById("vaciar-carrito").addEventListener("click", function (e) {
             e.preventDefault();
-            
             fetch('clases/vaciarcarrito.php', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         actualizarCarritoFlotante();
-                        
                     } else {
                         console.error("Error al vaciar el carrito:", data.error);
                     }
                 })
                 .catch(error => console.error("Error en la solicitud:", error));
         });
-});
+    });
 
-function actualizarCarritoFlotante() {
-    fetch('clases/obtenercarritochico.php')
-        .then(response => response.json())
-        .then(data => {
-            let listaCarrito = document.getElementById("lista-carrito-flotante");
-            let totalFlotante = document.getElementById("total-flotante");
-            listaCarrito.innerHTML = "";
-            let total = 0;
+    function actualizarCarritoFlotante() {
+        fetch('clases/obtenercarritochico.php')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Carrito chico:", data);
+                const listaCarrito = document.getElementById("lista-carrito-flotante");
+                const totalFlotante = document.getElementById("total-flotante");
+                listaCarrito.innerHTML = "";
+                let total = 0;
 
-            if (data.length === 0) {
-                listaCarrito.innerHTML = '<li class="header-cart-item">Carrito vacío</li>';
-                totalFlotante.innerHTML = "<?php echo MONEY;?>0.00";
-                return;
-            }
+                if (!Array.isArray(data) || data.length === 0) {
+                    listaCarrito.innerHTML = '<li class="header-cart-item">Carrito vacío</li>';
+                    totalFlotante.innerHTML = MONEY + "0.00";
+                    return;
+                }
 
-            data.forEach(producto => {
-                let subtotal = producto.cantidad * producto.precio;
-                total += subtotal;
+                data.forEach(producto => {
+                    const subtotal = producto.cantidad * producto.precio;
+                    total += subtotal;
 
-                let item = `<li class="header-cart-item flex-w flex-t m-b-12">
-                    <div class="header-cart-item-img">
-                        <img src="../${producto.ruta_imagen}" alt="IMG">
-                    </div>
+                    const itemHTML = `
+                        <li class="header-cart-item flex-w flex-t m-b-12">
+                            <div class="header-cart-item-img">
+                                <img src="../${producto.ruta_imagen}" alt="IMG">
+                            </div>
+                            <div class="header-cart-item-txt p-t-8">
+                                <span class="header-cart-item-name m-b-18 hov-cl1 trans-04">
+                                    ${producto.nombre}<br>
+                                    <small>Talla: ${producto.talla} - Color: ${producto.color}</small>
+                                </span>
+                                <span class="header-cart-item-info">
+                                    ${producto.cantidad} x ${MONEY}${parseFloat(producto.precio).toFixed(2)}
+                                </span>
+                            </div>
+                        </li>
+                    `;
+                    listaCarrito.insertAdjacentHTML('beforeend', itemHTML);
+                });
 
-                    <div class="header-cart-item-txt p-t-8">
-                        <a class="header-cart-item-name m-b-18 hov-cl1 trans-04">
-                            ${producto.nombre}
-                        </a>
-                        <span class="header-cart-item-info">
-                            ${producto.cantidad} x <?php echo MONEY;?>${producto.precio.toFixed(2)}
-                        </span>
-                    </div>
-                </li>`;
-
-                listaCarrito.innerHTML += item;
-            });
-
-            totalFlotante.innerHTML = "<?php echo MONEY;?>" + total.toFixed(2);
-        })
-        .catch(error => console.error("Error obteniendo el carrito:", error));
-}
-
-
+                totalFlotante.innerHTML = MONEY + total.toFixed(2);
+            })
+            .catch(error => console.error("Error obteniendo el carrito:", error));
+    }
 </script>

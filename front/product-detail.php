@@ -82,17 +82,20 @@
 				$imagenesadicionales->execute([$id]);
 				$imagenesadicionales = $imagenesadicionales->fetchAll(PDO::FETCH_ASSOC);
 
+			}else{
+				echo "Producto no encontrado";
+    			exit;
 			}
 
-			// $sqlcaracteristica = $conexion ->prepare("SELECT DISTINCT(det_prod_caracter.ID_caracteristica)AS idcat,caracteristicas.caracteristica FROM det_prod_caracter INNER JOIN caracteristicas on det_prod_caracter.ID_caracteristica = caracteristicas.ID_caracteristica WHERE det_prod_caracter.ID_producto = ?");
-			// $sqlcaracteristica ->execute([$id]);
-			// $sqlTallas =  $conexion ->prepare("SELECT DISTINCT t.ID_talla,t.nombre FROM productos_variantes AS pv INNER JOIN c_talla AS t ON pv.ID_talla = t.ID_talla WHERE pv.ID_producto = ?");
-			// $sqlTallas ->execute([$id]);
-			// $tallas = $sqlTallas->fetchAll(PDO::FETCH_ASSOC);
+			$sqlcaracteristica = $conexion ->prepare("SELECT DISTINCT(det_prod_caracter.ID_caracteristica)AS idcat,caracteristicas.caracteristica FROM det_prod_caracter INNER JOIN caracteristicas on det_prod_caracter.ID_caracteristica = caracteristicas.ID_caracteristica WHERE det_prod_caracter.ID_producto = ?");
+			$sqlcaracteristica ->execute([$id]);
+			$sqlTallas =  $conexion ->prepare("SELECT DISTINCT t.ID_talla,t.nombre FROM productos_variantes AS pv INNER JOIN c_talla AS t ON pv.ID_talla = t.ID_talla WHERE pv.ID_producto = ?");
+			$sqlTallas ->execute([$id]);
+			$tallas = $sqlTallas->fetchAll(PDO::FETCH_ASSOC);
 
-			// $sqlColores =  $conexion ->prepare("SELECT DISTINCT c.ID_colores,c.nombre FROM productos_variantes AS pv INNER JOIN c_colores AS c ON pv.ID_color = c.ID_colores WHERE pv.ID_producto = ?  ");
-			// $sqlColores ->execute([$id]);
-			// $colores = $sqlColores->fetchAll(PDO::FETCH_ASSOC);
+			$sqlColores =  $conexion ->prepare("SELECT DISTINCT c.ID_colores,c.nombre FROM productos_variantes AS pv INNER JOIN c_colores AS c ON pv.ID_color = c.ID_colores WHERE pv.ID_producto = ?  ");
+			$sqlColores ->execute([$id]);
+			$colores = $sqlColores->fetchAll(PDO::FETCH_ASSOC);
 
 		}else{
 			echo "Error al procesar la peticion";
@@ -170,9 +173,9 @@
 							<?php echo $nombre ?>
 						</h4>
 
-						<span class="mtext-106 cl13">
-							<?php echo MONEY; ?>  <?php echo number_format($precio,2,'.',',')?>
-						</span>
+						<p class="mtext-110 cl13 mt-2">
+							Precio: <span id="precio_variante"></span>
+						</p>
 
 						<p class="stext-102 cl3 p-t-23">
 							<?php echo $desc ?>
@@ -180,9 +183,6 @@
 
 						
 						<div class="p-t-33">
-							
-
-
 							<div class="flex-w flex-r-m p-b-10">
 								<div class="size-203 flex-c-m respon6">
 									Talle
@@ -190,7 +190,15 @@
 
 								<div class="size-204 respon6-next">
 									<div class="rs1-select2 bor8 bg0">
-										<span><?php echo ucfirst($talle);?></span>
+										<?php
+										if($tallas){ ?>
+											<select class="form-select form-select-md " name="talles" id="talles" onchange="cargarColores()">
+												<option value="" disabled selected>Selecccionar</option>
+												<?php foreach($tallas as $talla){?>
+													<option value="<?php echo $talla['ID_talla'];?>"><?php echo $talla['nombre'];?></option>
+												<?php } ?>
+											</select>
+										<?php } ?>
 									</div>
 								</div>
 							</div>
@@ -202,28 +210,43 @@
 
 								<div class="size-204 respon6-next">
 									<div class="rs1-select2 bor8 bg0">
-										<span><?php echo ucfirst($color);?></span>
+									<?php
+										if($colores){ ?>
+											<select class="form-select form-select-md " name="colores" id="colores">
+												<option value="">Selecccionar</option>
+												<?php foreach($colores as $color){?>
+													<option value="<?php echo $color['ID_colores'];?>"><?php echo $color['nombre'];?></option>
+												<?php } ?>
+											</select>
+										<?php } ?> 
 									</div>
 								</div>
 							</div>
+
+							<!-- Cantidad Disponible - Mejor Espaciado y Sin Apariencia de Input -->
+							<div class="flex-w flex-r-m p-b-10">
+								<div class="size-204 respon6-next d-flex align-items-center">
+									<span id='palabra_stock' class="me-1 text-muted small">Cantidad Disponible:</span>
+									<input class="border-0 bg-transparent fw-bold p-0" id="nuevo_stock" readonly style="width: auto; pointer-events: none;">
+								</div>
+							</div>
+							
 							<div class="flex-w flex-r-m p-b-10">
 								<div class="size-204 flex-w flex-m respon6-next">
+									
 									<div class="wrap-num-product flex-w m-r-20 m-tb-10">
 										 <div class="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m">
 											<i class="fs-16 zmdi zmdi-minus"></i>
 										</div>
 
-										<input class="mtext-104 cl3 txt-center num-product" type="number" id="cantidad" name="cantidad" min="1" max="10" value="1" >
+										<input class="mtext-104 cl3 txt-center num-product" type="number" id="cantidad_<?php echo $id; ?>" name="cantidad" min="1" max="10" value="1" >
 
 										<div class="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m">
 											<i class="fs-16 zmdi zmdi-plus"></i>
 										</div> 
 									</div>
-									
-									<input class="mtext-106 cl13" id="nuevo_precio" readonly></input>
-									<input class="mtext-106 cl13" id="nuevo_stock" readonly></input>
 							
-									<button class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04" onclick="addProducto(<?php echo $id; ?>,cantidad.value,'<?php echo $token_tmp;?>')">
+									<button id="btnAgregarCarrito" class="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04" onclick="addProducto(<?php echo $id; ?>,'<?php echo $token_tmp;?>')">
 										Agregar al Carrito
 									</button>
 								</div>
@@ -245,180 +268,6 @@
 					</div>
 				</div>
 			</div>
-
-			<!-- <div class="bor10 m-t-50 p-t-43 p-b-40">
-				Tab01 
-				<div class="tab01">
-					 Nav tabs
-					<ul class="nav nav-tabs" role="tablist">
-						<li class="nav-item p-b-10">
-							<a class="nav-link active" data-toggle="tab" href="#description" role="tab">Descripcion</a>
-						</li>
-
-						<li class="nav-item p-b-10">
-							<a class="nav-link" data-toggle="tab" href="#information" role="tab">Informacion Adiccional</a>
-						</li>
-
-						<li class="nav-item p-b-10">
-							<a class="nav-link" data-toggle="tab" href="#reviews" role="tab">Reviews (1)</a>
-						</li> 
-					</ul> -->
-
-					<!-- Tab panes -->
-					<!-- <div class="tab-content p-t-43">
-						 
-						<div class="tab-pane fade show active" id="description" role="tabpanel">
-							<div class="how-pos2 p-lr-15-md">
-								<p class="stext-102 cl6">
-									Lorem ipsum dolor sit amet consectetur adipisicing elit. Deserunt deleniti, similique necessitatibus quam, quis nobis sed cumque, aperiam alias quidem quo nemo. Ea dolores soluta veniam ducimus voluptate libero molestiae.
-								</p>
-							</div>
-						</div>
-
-						
-						<div class="tab-pane fade" id="information" role="tabpanel">
-							<div class="row">
-								<div class="col-sm-10 col-md-8 col-lg-6 m-lr-auto">
-									<ul class="p-lr-28 p-lr-15-sm">
-										<li class="flex-w flex-t p-b-7">
-											<span class="stext-102 cl3 size-205">
-												Weight
-											</span>
-
-											<span class="stext-102 cl6 size-206">
-												0.79 kg
-											</span>
-										</li>
-
-										<li class="flex-w flex-t p-b-7">
-											<span class="stext-102 cl3 size-205">
-												Dimensions
-											</span>
-
-											<span class="stext-102 cl6 size-206">
-												110 x 33 x 100 cm
-											</span>
-										</li>
-
-										<li class="flex-w flex-t p-b-7">
-											<span class="stext-102 cl3 size-205">
-												Materials
-											</span>
-
-											<span class="stext-102 cl6 size-206">
-												60% cotton
-											</span>
-										</li>
-
-										<li class="flex-w flex-t p-b-7">
-											<span class="stext-102 cl3 size-205">
-												Color
-											</span>
-
-											<span class="stext-102 cl6 size-206">
-												Black, Blue, Grey, Green, Red, White
-											</span>
-										</li>
-
-										<li class="flex-w flex-t p-b-7">
-											<span class="stext-102 cl3 size-205">
-												Size
-											</span>
-
-											<span class="stext-102 cl6 size-206">
-												XL, L, M, S
-											</span>
-										</li>
-									</ul>
-								</div>
-							</div>
-						</div> -->
-
-						<!--
-						<div class="tab-pane fade" id="reviews" role="tabpanel">
-							<div class="row">
-								<div class="col-sm-10 col-md-8 col-lg-6 m-lr-auto">
-									<div class="p-b-30 m-lr-15-sm">
-										 Review 
-										<div class="flex-w flex-t p-b-68">
-											<div class="wrap-pic-s size-109 bor0 of-hidden m-r-18 m-t-6">
-												<img src="images/avatar-01.jpg" alt="AVATAR">
-											</div>
-
-											<div class="size-207">
-												<div class="flex-w flex-sb-m p-b-17">
-													<span class="mtext-107 cl2 p-r-20">
-														Ariana Grande
-													</span>
-
-													<span class="fs-18 cl11">
-														<i class="zmdi zmdi-star"></i>
-														<i class="zmdi zmdi-star"></i>
-														<i class="zmdi zmdi-star"></i>
-														<i class="zmdi zmdi-star"></i>
-														<i class="zmdi zmdi-star-half"></i>
-													</span>
-												</div>
-
-												<p class="stext-102 cl6">
-													Quod autem in homine praestantissimum atque optimum est, id deseruit. Apud ceteros autem philosophos
-												</p>
-											</div>
-										</div>
-										
-										 Add review 
-										<form class="w-full">
-											<h5 class="mtext-108 cl2 p-b-7">
-												Add a review
-											</h5>
-
-											<p class="stext-102 cl6">
-												Your email address will not be published. Required fields are marked *
-											</p>
-
-											<div class="flex-w flex-m p-t-50 p-b-23">
-												<span class="stext-102 cl3 m-r-16">
-													Your Rating
-												</span>
-
-												<span class="wrap-rating fs-18 cl11 pointer">
-													<i class="item-rating pointer zmdi zmdi-star-outline"></i>
-													<i class="item-rating pointer zmdi zmdi-star-outline"></i>
-													<i class="item-rating pointer zmdi zmdi-star-outline"></i>
-													<i class="item-rating pointer zmdi zmdi-star-outline"></i>
-													<i class="item-rating pointer zmdi zmdi-star-outline"></i>
-													<input class="dis-none" type="number" name="rating">
-												</span>
-											</div>
-
-											<div class="row p-b-25">
-												<div class="col-12 p-b-5">
-													<label class="stext-102 cl3" for="review">Your review</label>
-													<textarea class="size-110 bor8 stext-102 cl2 p-lr-20 p-tb-10" id="review" name="review"></textarea>
-												</div>
-
-												<div class="col-sm-6 p-b-5">
-													<label class="stext-102 cl3" for="name">Name</label>
-													<input class="size-111 bor8 stext-102 cl2 p-lr-20" id="name" type="text" name="name">
-												</div>
-
-												<div class="col-sm-6 p-b-5">
-													<label class="stext-102 cl3" for="email">Email</label>
-													<input class="size-111 bor8 stext-102 cl2 p-lr-20" id="email" type="text" name="email">
-												</div>
-											</div>
-
-											<button class="flex-c-m stext-101 cl0 size-112 bg7 bor11 hov-btn3 p-lr-15 trans-04 m-b-10">
-												Submit
-											</button>
-										</form>-->
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 
 	</section>
@@ -428,63 +277,122 @@
 	<?php include 'footer.php' ; ?>
 	
 <!--===============================================================================================-->
-	<script> 
-		function addProducto(id,cantidad,token){
-			//ajax con api fetch,obtenemos los datos
-			let url = 'clases/numerocarrito.php';
-			let formData = new FormData();
-			//enviamos los datos
-			formData.append('id',id);
-			formData.append('cantidad',cantidad);
-			formData.append('token',token);
-			
-			//enviamos configuraciones a esa url mediante metodo post
-			fetch(url,{
-				method: 'POST',
-				body: formData,
-				mode: 'cors'
-			})
-			.then(response => response.json())
-			.then(data =>{
-				if(data.ok){
-					let elemento = document.getElementById("num_cart");
-					// Actualiza el valor de `data-notify` con el número total de productos
-					elemento.setAttribute('data-notify', data.numero);
+<script>
+	function addProducto(id_producto, token) {
+		let cantidad = document.getElementById('cantidad_' + id_producto).value;
 
-					// Llamar a la función para actualizar el carrito flotante
-					actualizarCarritoFlotante();
-
-					//Animacion de agregado al carrito
-					let nameProductSuccess = $(".js-name-detail").html();
-            		swal({
-						title:nameProductSuccess, 
-						text:"¡Se agregó correctamente al carrito!", 
-						icon: "success",
-						timer: 2000, 
-						buttons: false,
-					
-					});
-            
-				}else{
-					//Animacion de insuficiente stock
-					let nameProductError = $(".js-name-detail").html();
-            		swal({
-						title: nameProductError, 
-						text: "¡No hay suficientes existencias!", 
-						icon: "error",
-						timer: 2000,  // El mensaje se cierra automáticamente después de 3 segundos (3000 milisegundos)
-						buttons: false,  // No muestra botones (opcional)
-					});
-					
-				}
-
-			})
-
-
+		cantidad = parseInt(cantidad);
+		if (isNaN(cantidad) || cantidad < 1) {
+			swal({
+				title: "Cantidad inválida",
+				text: "Debes ingresar una cantidad válida.",
+				icon: "warning",
+				timer: 2000,
+				buttons: false,
+			});
+			return;
 		}
+		
+		let id_talla = document.getElementById('talles').value;
+		let id_color = document.getElementById('colores').value;
 
+		// Paso 1: Obtener ID de la variante (y su stock)
+		let formDataVariante = new FormData();
+		formDataVariante.append('id_producto', id_producto);
+		formDataVariante.append('id_talla', id_talla);
+		formDataVariante.append('id_color', id_color);
+		if (!id_talla || !id_color) {
+			swal({
+				title: "Atención",
+				text: "Debes seleccionar un talle y un color.",
+				icon: "warning",
+				timer: 2000,
+				buttons: false,
+			});
+			return;
+		}
+		console.log(token)
+		fetch('clases/getVariante.php', {
+			method: 'POST',
+			body: formDataVariante
+		})
+		 
+		.then(response => response.json())
+		.then(data => {
+			console.log(data);
+			if (data.success) {
+				let id_variante = data.id_variante;
+				let stock = parseInt(data.stock); // asumimos que getVariante.php devuelve stock también
+				let cantidadDeseada = parseInt(cantidad);
+	
+				if (stock >= cantidadDeseada) {
+					// Paso 2: Hacer el fetch al carrito si hay stock
+					let url = 'clases/numerocarrito.php';
+					let formData = new FormData();
+					formData.append('id', id_producto);
+					formData.append('cantidad', cantidad);
+					formData.append('token', token);
+					formData.append('id_variante', id_variante);
+					formData.append('id_talla', id_talla);
+					formData.append('id_color', id_color);
 
-	</script>
+					fetch(url, {
+						method: 'POST',
+						body: formData,
+						mode: 'cors'
+					})
+					.then(response => response.json())
+					.then(data => {
+						if (data.ok) {
+							let elemento = document.getElementById("num_cart");
+							elemento.setAttribute('data-notify', data.numero);
+
+							actualizarCarritoFlotante();
+
+							let nameProductSuccess = $(".js-name-detail").html();
+							swal({
+								title: nameProductSuccess,
+								text: "¡Se agregó correctamente al carrito!",
+								icon: "success",
+								timer: 2000,
+								buttons: false,
+							});
+						} else {
+							// Error por backend (por ejemplo, falla en carrito.php)
+							let nameProductError = $(".js-name-detail").html();
+							swal({
+								title: nameProductError,
+								text: "¡No hay suficientes existencias!",
+								icon: "error",
+								timer: 2000,
+								buttons: false,
+							});
+						}
+					});
+				} else {
+					// Stock insuficiente
+					let nameProductError = $(".js-name-detail").html();
+					swal({
+						title: nameProductError,
+						text: "¡Stock insuficiente para la variante seleccionada!",
+						icon: "error",
+						timer: 2000,
+						buttons: false,
+					});
+				}
+			} else {
+				// No se encontró variante
+				swal({
+					title: "Error",
+					text: "Variante no encontrada. Verifica el talle y color.",
+					icon: "error",
+					timer: 2000,
+					buttons: false,
+				});
+			}
+		});
+	}
+</script>
 
 <!--===============================================================================================-->	
 	<script>
@@ -495,23 +403,24 @@
 		cbxColores.addEventListener('change',cargarVariante,false)
 
 		function cargarColores(){
-			
-			let idTalla = 0;
-			if(document.getElementById('talles')){
-				idTalla = document.getElementById('talles').value
+			let idTalla = document.getElementById('talles').value;
+
+			// Si no se eligió ningún talle, no seguimos
+			if (!idTalla) {
+				document.getElementById('colores').innerHTML = '<option value="">Seleccionar luego</option>';
+				document.getElementById('colores').disabled = true;
+				document.getElementById('nuevo_stock').value = '';
+				return;
 			}
-			
-			const cbxColores = document.getElementById('colores')
-			const divColores = document.getElementById('div-colores')
-			//ajax con api fetch,obtenemos los datos
+
+			const cbxColores = document.getElementById('colores');
+
 			let url = 'clases/productosAjax.php';
 			let formData = new FormData();
-			//enviamos los datos
 			formData.append('ID_producto','<?php echo $id?>');
 			formData.append('ID_talla',idTalla);
 			formData.append('action','buscarColoresPorTalla');
-			
-			//enviamos configuraciones a esa url mediante metodo post
+
 			fetch(url,{
 				method: 'POST',
 				body: formData,
@@ -519,21 +428,33 @@
 			})
 			.then(response => response.json())
 			.then(data =>{
-				if(data.colores != ''){
-					divColores.style.display = 'block';
+				if(data.colores){
+					cbxColores.disabled = false;
 					cbxColores.innerHTML = data.colores;
 				}else{
-					divColores.style.display = 'none';
-					cbxColores.innerHTML = '';
-					cbxColores.value = 0; 
+					cbxColores.disabled = true;
+					cbxColores.innerHTML = '<option value="">Sin colores disponibles</option>';
 				}
-				cargarVariante()
-			})
-			
+
+				// Solo llamamos cargarVariante si hay un color seleccionado
+				if (cbxColores.value) {
+					cargarVariante();
+				}
+			});
 		}
 
-		function cargarVariante(){
 
+		function cargarVariante(){
+			const inputStock = document.getElementById('nuevo_stock');
+			const btnAgregar = document.getElementById('btnAgregarCarrito');
+			const palabra_stock = document.getElementById('palabra_stock');
+
+			inputStock.value = '';
+			inputStock.style.color = '#000'; // color por defecto
+			palabra_stock.style.display = 'inline';
+			
+			document.getElementById('nuevo_stock').value = '';
+			
 			let idTalla = 0
 			if(document.getElementById('talles')){
 				idTalla = document.getElementById('talles').value
@@ -565,11 +486,39 @@
 			})
 			.then(response => response.json())
 			.then(data =>{
-				if(data.variantes != ''){
-					document.getElementById('nuevo_precio').value = data.variantes.precio
-					document.getElementById('nuevo_stock').value = data.variantes.stock
-				}else{
-					document.getElementById('nuevo_precio').value = 'No encontro'
+				if(data.variantes != '' && data.variantes.stock !== undefined){
+					const spanPrecio = document.getElementById('precio_variante');
+					let precio = parseFloat(data.variantes.precio);
+					if (!isNaN(precio)) {
+						spanPrecio.innerText = '<?php echo MONEY; ?> ' + precio.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+					} else {
+						spanPrecio.innerText = '';
+					}
+					let stock = parseInt(data.variantes.stock);
+					if (stock > 0) {
+						inputStock.value = stock;
+						inputStock.style.color = '#89ac76';
+
+						// Habilitamos el botón
+						palabra_stock.style.display = 'inline';
+						btnAgregar.style.opacity = '1';
+						btnAgregar.style.pointerEvents = 'auto';
+					} else {
+						inputStock.value = 'Sin stock';
+						inputStock.style.color = '#CC6666';
+
+						// Deshabilitamos el botón
+						palabra_stock.style.display = 'none';
+						btnAgregar.style.opacity = '0.5';
+						btnAgregar.style.pointerEvents = 'none';
+					}
+				}else {
+					inputStock.value = 'No encontrado';
+					inputStock.style.color = 'gray';
+
+					labelStock.style.display = 'none';
+					btnAgregar.style.opacity = '0.5';
+					btnAgregar.style.pointerEvents = 'none';
 				}
 
 			})

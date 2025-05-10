@@ -24,7 +24,15 @@ if($id_transaccion == ''|| $id_transaccion == 0){
 			$fecha = new DateTime($row['fecha']);
 			$fecha_nueva = $fecha->format('d/m/Y H:i');
 	
-			$sqldetalles = $conexion->prepare("SELECT nombre, precio, cantidad FROM ventas_producto WHERE ID_compra = ?;");
+			$sqldetalles = $sqldetalles = $conexion->prepare("
+			SELECT vp.nombre, vp.precio, vp.cantidad,
+				   t.nombre AS talla, c.nombre AS color
+			FROM ventas_producto vp
+			INNER JOIN productos_variantes v ON vp.ID_variante = v.ID_producvar
+			INNER JOIN c_talla t ON v.ID_talla = t.ID_talla
+			INNER JOIN c_colores c ON v.ID_color = c.ID_colores
+			WHERE vp.ID_compra = ?");
+			
 			$sqldetalles->execute([$idcompra]);
 		} else {
 			$error = 'Error al obtener detalles de la compra';
@@ -115,9 +123,10 @@ if($id_transaccion == ''|| $id_transaccion == 0){
 												<?php while($row_det = $sqldetalles->fetch(PDO::FETCH_ASSOC)) {
 													$importe = $row_det['precio'] * $row_det['cantidad']; ?>
 													<tr class="table_row">
-														<td class="column-1"><?php echo $row_det['nombre']; ?></td>
+														<td class="column-1"><?php echo $row_det['nombre']; ?><br><small>Talle: <?php echo $row_det['talla']; ?> | Color: <?php echo $row_det['color']; ?></small></td>
 														<td class="column-4"><?php echo $row_det['cantidad']; ?></td>
 														<td class="column-5"><?php echo number_format($importe, 2, '.', ','); ?></td>
+														
 													</tr>
 												<?php } ?>
 											</table>

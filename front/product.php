@@ -43,6 +43,28 @@
 			max-height: 250px; /* Ajusta según la necesidad */
 			overflow-y: auto;
 		}
+		.producto-sin-stock {
+			opacity: 0.6;
+			position: relative;
+		}
+
+		.etiqueta-sin-stock {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			background-color: rgba(255, 255, 255, 0.8);
+			color: red;
+			font-weight: bold;
+			padding: 5px 10px;
+			border-radius: 5px;
+			z-index: 2;
+		}
+		.btn-sin-stock {
+			background-color: #e0e0e0 !important;
+			color: #a0a0a0 !important;
+			cursor: not-allowed;
+			border-color: #d0d0d0 !important;
+		}
 	</style>
 	
 
@@ -62,8 +84,8 @@ include '../modelos/configproduct-detail.php';
 	
 	<?php
 	$idCategoria = $_GET['cat'] ?? null;
-	$idColor = $_GET['color'] ?? null;
-	$idTalla = $_GET['talla'] ?? null;
+	// $idColor = $_GET['color'] ?? null;
+	// $idTalla = $_GET['talla'] ?? null;
 	$genero = $_GET['genero'] ?? null;
 	
 	$search = $_GET['search'] ?? null;
@@ -78,36 +100,42 @@ include '../modelos/configproduct-detail.php';
 
 	$order = $orders[$orden] ?? '';
 	
-	$query = "SELECT * FROM producto WHERE estado = 1 ";
+	$query = "SELECT * FROM producto ";
 	$params = [];
 	
+	$condiciones = [];
+
 	if (!empty($idCategoria)) {
-		$query .= " AND categoria = ? ";
+		$condiciones[] = "categoria = ?";
 		$params[] = $idCategoria;
 	}
 	
-	if (!empty($idColor)) {
-		$query .= " AND color = ? ";
-		$params[] = $idColor;
-	}
+	// if (!empty($idColor)) {
+	// 	$query .= " AND color = ? ";
+	// 	$params[] = $idColor;
+	// }
 	
-	if (!empty($idTalla)) {
-		$query .= " AND talle = ? ";
-		$params[] = $idTalla;
-	}
+	// if (!empty($idTalla)) {
+	// 	$query .= " AND talle = ? ";
+	// 	$params[] = $idTalla;
+	// }
 	
 	if (!empty($genero)) {
-		$query .= " AND genero = ? ";
+		$condiciones[] = "genero = ? ";
 		$params[] = $genero;
 	}
 
 	if (!empty($search)) {
-		$query .= " AND nombre LIKE ? ";
+		$condiciones[] = "nombre LIKE ? ";
 		$params[] = "%$search%";
+	}
+	// Si hay condiciones, agregamos WHERE
+	if (!empty($condiciones)) {
+		$query .= " WHERE " . implode(" AND ", $condiciones);
 	}
 
 	if (!empty($order)) {
-		$query .= " ORDER BY $order";
+		$condiciones[] = " ORDER BY $order";
 	}
 
 	$consulta_productos = $conexion->prepare($query);
@@ -115,8 +143,8 @@ include '../modelos/configproduct-detail.php';
 	$resultado_productos = $consulta_productos->fetchAll(PDO::FETCH_ASSOC);
 	
 	$categorias = $conexion->query("SELECT c.ID_categoria, c.nombre, c.activo, COUNT(p.ID_producto) AS cantidad_productos FROM categoria c LEFT JOIN producto p ON c.ID_categoria = p.categoria WHERE c.activo = 1 GROUP BY c.ID_categoria, c.nombre, c.activo HAVING cantidad_productos > 0")->fetchAll(PDO::FETCH_ASSOC);
-	$colores = $conexion->query("SELECT c.ID_colores,c.nombre,COUNT(p.ID_producto)AS cantidad_productos FROM c_colores c LEFT JOIN producto p ON c.ID_colores = p.color GROUP BY c.ID_colores,c.nombre HAVING cantidad_productos > 0")->fetchAll(PDO::FETCH_ASSOC);
-	$tallas = $conexion->query("SELECT t.ID_talla,t.nombre,COUNT(p.ID_producto) AS cantidad_productos FROM c_talla t LEFT JOIN producto p ON t.ID_talla = p.talle GROUP BY t.ID_talla,t.nombre HAVING cantidad_productos > 0")->fetchAll(PDO::FETCH_ASSOC);
+	//$colores = $conexion->query("SELECT c.ID_colores,c.nombre,COUNT(p.ID_producto)AS cantidad_productos FROM c_colores c LEFT JOIN producto p ON c.ID_colores = p.color GROUP BY c.ID_colores,c.nombre HAVING cantidad_productos > 0")->fetchAll(PDO::FETCH_ASSOC);
+	//$tallas = $conexion->query("SELECT t.ID_talla,t.nombre,COUNT(p.ID_producto) AS cantidad_productos FROM c_talla t LEFT JOIN producto p ON t.ID_talla = p.talle GROUP BY t.ID_talla,t.nombre HAVING cantidad_productos > 0")->fetchAll(PDO::FETCH_ASSOC);
 	?>
 	
 	<!-- Product -->
@@ -129,19 +157,13 @@ include '../modelos/configproduct-detail.php';
 						Todos los productos
 					</a>
 
-					<a href="product.php?cat=<?php echo $idCategoria; ?>&color=<?php echo $idColor; ?>&talla=<?php echo $idTalla; ?>&genero=1&orden=<?php echo $orden; ?>&search=<?php echo $search; ?>" 
-						class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 
-						<?php if($genero == 1) echo 'how-active1'; ?>">
-						Hombres
-					</a>
-
-					<a href="product.php?cat=<?php echo $idCategoria; ?>&color=<?php echo $idColor; ?>&talla=<?php echo $idTalla; ?>&genero=2&orden=<?php echo $orden; ?>&search=<?php echo $search; ?>" 
+					<a href="product.php?cat=<?php echo $idCategoria; ?>&genero=2&orden=<?php echo $orden; ?>&search=<?php echo $search; ?>" 
 						class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 
 						<?php if($genero == 2) echo 'how-active1'; ?>">
 						Mujeres
 					</a>
 
-					<a href="product.php?cat=<?php echo $idCategoria; ?>&color=<?php echo $idColor; ?>&talla=<?php echo $idTalla; ?>&genero=3&orden=<?php echo $orden; ?>&search=<?php echo $search; ?>" 
+					<a href="product.php?cat=<?php echo $idCategoria; ?>&genero=3&orden=<?php echo $orden; ?>&search=<?php echo $search; ?>" 
 						class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 
 						<?php if($genero == 3) echo 'how-active1'; ?>">
 						Unisex
@@ -188,59 +210,13 @@ include '../modelos/configproduct-detail.php';
 								</li>
 							<?php foreach($categorias as $categoria){ ?>
 								<li class="p-b-6">
-									<a href="product.php?cat=<?php echo $categoria['ID_categoria']; ?>&color=<?php echo $idColor; ?>&talla=<?php echo $idTalla; ?>&genero=<?php echo $genero; ?>&orden=<?php echo $orden; ?>" class="filter-link stext-106 trans-04 <?php if($idCategoria == $categoria['ID_categoria'])echo 'filter-link-active' ?>">
+									<a href="product.php?cat=<?php echo $categoria['ID_categoria']; ?>&genero=<?php echo $genero; ?>&orden=<?php echo $orden; ?>" class="filter-link stext-106 trans-04 <?php if($idCategoria == $categoria['ID_categoria'])echo 'filter-link-active' ?>">
 										<?php echo ucfirst($categoria['nombre'])?>
 									</a>
 								</li>
 							<?php } ?>
 							<ul>
 						</div>
-
-						<div class="filter-col2 p-r-15 p-b-27">
-							<div class="mtext-102 cl13 p-b-15">
-								Colores
-							</div>
-							<ul>
-								<li class="p-b-6">
-									<a href="product.php" class="filter-link stext-106 trans-04 ">
-										Todo
-									</a>
-								</li>
-							<?php 
-							foreach($colores as $color){ ?>
-								<li class="p-b-6">
-									<a href="product.php?cat=<?php echo $idCategoria; ?>&color=<?php echo $color['ID_colores']; ?>&talla=<?php echo $idTalla; ?>&genero=<?php echo $genero; ?>&orden=<?php echo $orden; ?>" class="filter-link stext-106 trans-04 <?php if($idColor == $color['ID_colores'])echo 'filter-link-active' ?>">
-										<?php echo ucfirst($color['nombre'])?>
-									</a>
-								</li>
-							<?php } ?>
-							<ul>
-							
-						</div>
-
-						<div class="filter-col3 p-r-15 p-b-27">
-							<div class="mtext-102 cl13 p-b-15">
-								Talles
-							</div>
-
-							<ul>
-								<li class="p-b-6">
-									<a href="product.php" class="filter-link stext-106 trans-04 ">
-										Todo
-									</a>
-								</li>
-							<?php 
-							foreach($tallas as $talla){ ?>
-								<li class="p-b-6">
-									<a href="product.php?cat=<?php echo $idCategoria; ?>&color=<?php echo $idColor; ?>&talla=<?php echo $talla['ID_talla']; ?>&genero=<?php echo $genero; ?>&orden=<?php echo $orden; ?>" class="filter-link stext-106 trans-04 <?php if($idTalla == $talla['ID_talla'])echo 'filter-link-active' ?>">
-										<?php echo ucfirst($talla['nombre'])?>
-									</a>
-								</li>
-							<?php } ?>
-							<ul>
-						</div>
-
-						
 					</div>
 				</div>
 			</div>
@@ -250,8 +226,6 @@ include '../modelos/configproduct-detail.php';
 					<form action="product.php" id="ordenForm" method="GET">
 						
 						<input type="hidden" name="cat" id="cat" value="<?php echo $idCategoria; ?>">
-						<input type="hidden" name="color" id="color" value="<?php echo $idColor; ?>">
-						<input type="hidden" name="talla" id="talla" value="<?php echo $idTalla; ?>">
 						<input type="hidden" name="genero" id="genero" value="<?php echo $genero; ?>">
 						<!-- ver para los otros filtros para poder ordenar  -->
 
@@ -274,21 +248,27 @@ include '../modelos/configproduct-detail.php';
 				foreach($resultado_productos as $row){?>
 				<div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item 
 				<?php 
-					if ($row['genero'] == 1) echo 'men'; 
 					if ($row['genero'] == 2) echo 'women'; 
-					if ($row['genero'] == 3) echo 'unisex'; 
+					if ($row['genero'] == 3) echo 'unisex';
+					$clase_sin_stock = ($row['estado'] == 0) ? 'producto-sin-stock' : ''; 
      			?>">
 					<?php
 					$imagen = '../'. $row['ruta_imagen'];
 					?>
 					<!-- Block2 -->
-					<div class="block2">
+					<div class="block2 <?php echo $clase_sin_stock; ?>">
 						<div class="block2-pic hov-img0">
+							<?php if ($row['estado'] == 0): ?>
+								<div class="etiqueta-sin-stock">Sin stock</div>
+							<?php endif; ?>
 							<img src="<?php echo $imagen ; ?>" alt="IMG-PRODUCT">
-
-							<a href="product-detail.php?ID_producto=<?php echo $row['ID_producto'];?>&token=<?php echo urlencode(hash_hmac('sha1',$row['ID_producto'],KEY_TOKEN));?>" class="block2-btn flex-c-m stext-103 cl13 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 ">
-								Ver Producto
-							</a>
+							<?php if($row['estado']==1):?>
+								<a href="product-detail.php?ID_producto=<?php echo $row['ID_producto'];?>&token=<?php echo urlencode(hash_hmac('sha1',$row['ID_producto'],KEY_TOKEN));?>" class="block2-btn flex-c-m stext-103 cl13 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 ">
+									Ver Producto
+								</a>
+							<?php else: ?>
+								<a class="block2-btn flex-c-m stext-103 cl13 size-102 bg0 bor2 p-lr-15 trans-04 btn-sin-stock" style="pointer-events: none;">Sin stock </a>
+							<?php endif; ?>
 						</div>
 
 						<div class="block2-txt flex-w flex-t p-t-14">
@@ -314,14 +294,6 @@ include '../modelos/configproduct-detail.php';
 				<?php }?>
 				<?php }?>
 			</div>
-			
-
-			<!-- Load more
-			<div class="flex-c-m flex-w w-full p-t-45">
-				<a href="#" class="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04">
-					Ver Mas
-				</a>
-			</div> -->
 		</div>
 	</div>
 		
