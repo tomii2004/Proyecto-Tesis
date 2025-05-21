@@ -19,7 +19,7 @@ if($orden == null || $token == null || $token != $token_session){
     exit;
 }
 
-$sqlcompra = $conexion ->prepare ("SELECT ID_compra,ID_transaccion,fecha,total FROM compras WHERE ID_transaccion = ? LIMIT 1");
+$sqlcompra = $conexion ->prepare ("SELECT ID_compra,ID_transaccion,fecha,total,costo_envio FROM compras WHERE ID_transaccion = ? LIMIT 1");
 $sqlcompra ->execute([$orden]);
 $rowcompra = $sqlcompra ->fetch(PDO::FETCH_ASSOC);
 $idcompra = $rowcompra['ID_compra'];
@@ -132,6 +132,7 @@ $sqldetalle -> execute([$idcompra]);
                             <div class ="card-body">
                                 <p><strong>Fecha: </strong><?php echo $fecha;?></p>
                                 <p><strong>Orden: </strong><?php echo $rowcompra['ID_transaccion'];?></p>
+								<p><strong>Envio: </strong><?php echo MONEY .' '. number_format($rowcompra['costo_envio'],2,',','.');?></p>
                                 <p><strong>Total: </strong><?php echo MONEY .' '. number_format($rowcompra['total'],2,',','.');?></p>
                                 </div>
                         </div>

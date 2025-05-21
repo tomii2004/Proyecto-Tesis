@@ -22,7 +22,7 @@ if ($id_transaccion) {
         
 
         if (empty($_SESSION['user_cliente'])) {
-            header("Location: ../login.php");
+            header("Location: ..//paginalogin/login.php");
             exit;
         }
 
@@ -69,12 +69,20 @@ if ($id_transaccion) {
                 exit;
             }
         }
-
+        //Obtengo los datos desde la variable de session 
+        $costo_envio = isset($_SESSION['envio']) ? floatval($_SESSION['envio']) : 0.00;
+        $direccion_sesion = $_SESSION['direccion_envio'] ?? null;
+        $calle           = ($direccion_sesion['calle'] ?? '');
+        $numero          = ($direccion_sesion['numero'] ?? '');
+        $codigo_postal   = ($direccion_sesion['codigo_postal'] ?? '');
         // Registrar compra
-        $sql = $conexion->prepare("INSERT INTO compras (ID_transaccion, fecha, estado, email, ID_cliente, total, medio_pago) VALUES (?, ?, ?, ?, ?, ?, ?);");
-        $sql->execute([$id_transaccion, $fecha_nueva, $estado, $email, $idCliente, $total, 'MercadoPago']);
+        $sql = $conexion->prepare("INSERT INTO compras (ID_transaccion, fecha, estado, email, ID_cliente, total, medio_pago,calle,numero,codigo_postal,costo_envio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+        $sql->execute([$id_transaccion, $fecha_nueva, $estado, $email, $idCliente, $total, 'MercadoPago',$calle,$numero,$codigo_postal,$costo_envio]);
         $idCompra = $conexion->lastInsertId();
 
+        unset($_SESSION['direccion_envio']);
+        unset($_SESSION['envio']);
+        
         // Insertar productos
         foreach ($variantes as $item) {
             $idProducto = $item['id'];
@@ -103,9 +111,14 @@ if ($id_transaccion) {
         $cuerpo .= "<p><b>ID de la compra:</b> {$id_transaccion}</p>";
         $cuerpo .= "<p><b>Fecha de compra:</b> {$fecha_nueva}</p>";
         $cuerpo .= "<p><b>Total pagado:</b> $" . number_format($total, 2) . "</p>";
+        $cuerpo .= "<p><b>Costo del envio:</b> $" . number_format($costo_envio, 2) . "</p>";
         $cuerpo .= "<p><b>Método de pago:</b> Mercado Pago</p>";
+        $cuerpo .= "<p><b>Direccion de envio:</b> {$calle} {$numero}</p>";
+        $cuerpo .= "<p><b>Codigo Postal:</b> {$codigo_postal}</p>";
         $cuerpo .= "<br><p><b>¡Esperamos que disfrutes tu compra!</b></p>";
         $mailer->enviarEmail($email, $asunto, $cuerpo);
+
+    
       
         unset($_SESSION['carrito']);
         header("Location: ../completado.php?key=" . $id_transaccion);

@@ -31,12 +31,23 @@ class Card
     /** Last update of data from the card. */
     public ?string $date_last_updated;
 
+    /** Country Card. */
+    public ?string $country;
+
     /** Card's owner data. */
     public array|object|null $cardholder;
+
+    /** Bin. */
+    public ?string $bin;
+
+    /** Tags. */
+    public array|object|null $tags;
+
 
     private $map = [
         "cardholder" => "MercadoPago\Resources\Payment\Cardholder"
     ];
+
 
     /**
      * Method responsible for getting map of entities.

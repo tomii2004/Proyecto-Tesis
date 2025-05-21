@@ -14,23 +14,25 @@ if($id_transaccion == ''|| $id_transaccion == 0){
     $sql_producto ->execute([$id_transaccion,'approved']);
 	$existe = $sql_producto ->fetchColumn();
     if($existe > 0){
-        $sql_producto = $conexion ->prepare("SELECT ID_compra,fecha,email,total FROM compras where ID_transaccion = ? AND estado = ? LIMIT 1;");
+        $sql_producto = $conexion ->prepare("SELECT ID_compra,fecha,email,total,costo_envio FROM compras where ID_transaccion = ? AND estado = ? LIMIT 1;");
         $sql_producto ->execute([$id_transaccion,'approved']);
         $row = $sql_producto->fetch(PDO::FETCH_ASSOC);
         
 		if ($row) {
 			$idcompra = $row['ID_compra'];
 			$total = $row['total'];
+			$costo_envio = $row['costo_envio'];
 			$fecha = new DateTime($row['fecha']);
 			$fecha_nueva = $fecha->format('d/m/Y H:i');
 	
 			$sqldetalles = $sqldetalles = $conexion->prepare("
 			SELECT vp.nombre, vp.precio, vp.cantidad,
-				   t.nombre AS talla, c.nombre AS color
+				   t.nombre AS talla, c.nombre AS color,p.ruta_imagen
 			FROM ventas_producto vp
 			INNER JOIN productos_variantes v ON vp.ID_variante = v.ID_producvar
 			INNER JOIN c_talla t ON v.ID_talla = t.ID_talla
 			INNER JOIN c_colores c ON v.ID_color = c.ID_colores
+			INNER JOIN producto p ON vp.ID_producto = p.ID_producto
 			WHERE vp.ID_compra = ?");
 			
 			$sqldetalles->execute([$idcompra]);
@@ -116,14 +118,17 @@ if($id_transaccion == ''|| $id_transaccion == 0){
 										<div class="wrap-table-shopping-cart">
 											<table class="table-shopping-cart">
 												<tr class="table_head">
-													<th class="column-1">Producto</th>
+													<th class="column-1">Imagen</th>
+													<th class="column-2">Producto</th>
 													<th class="column-4">Cantidad</th>
 													<th class="column-5">Importe</th>
 												</tr>
 												<?php while($row_det = $sqldetalles->fetch(PDO::FETCH_ASSOC)) {
-													$importe = $row_det['precio'] * $row_det['cantidad']; ?>
+													$importe = $row_det['precio'] * $row_det['cantidad'];
+													$imagen = !empty($row_det['ruta_imagen']) ? $row_det['ruta_imagen'] : 'imagen-no-disponible.png'; ?>
 													<tr class="table_row">
-														<td class="column-1"><?php echo $row_det['nombre']; ?><br><small>Talle: <?php echo $row_det['talla']; ?> | Color: <?php echo $row_det['color']; ?></small></td>
+														<td class="column-1"><img src="../<?php echo $imagen; ?>" alt="Producto" width="60" height="60" style="object-fit: cover; border-radius: 5px;"></td>
+														<td class="column-2"><?php echo $row_det['nombre']; ?><br><small>Talle: <?php echo $row_det['talla']; ?> | Color: <?php echo $row_det['color']; ?></small></td>
 														<td class="column-4"><?php echo $row_det['cantidad']; ?></td>
 														<td class="column-5"><?php echo number_format($importe, 2, '.', ','); ?></td>
 														
@@ -140,7 +145,8 @@ if($id_transaccion == ''|| $id_transaccion == 0){
                             <div class="col text-center">
                                 <b> Folio de la compra: </b><?php echo $id_transaccion; ?><br>
                                 <b> Fecha de la compra: </b><?php echo $fecha_nueva; ?><br>
-                                <b> Total: </b><?php echo MONEY . number_format($total,2,'.',','); ?><br>
+								<b>Costo de envío: </b><?php echo MONEY . number_format($costo_envio, 2, '.', ','); ?><br>
+                                <b> Total (Productos + Envio): </b><?php echo MONEY . number_format($total,2,'.',','); ?><br>
 								<a href="index.php">Volver al Inicio</a>
                             </div>
 							

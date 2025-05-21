@@ -79,6 +79,7 @@
             <li class="treeview"><a href="?c=compras"><i class="fa fa-solid fa-cart-shopping"></i><span>Ventas</span></a>
             <li class="treeview"><a href="?c=categorias"><i class="fa fa-solid fa-table-list" style="color: white;"></i><span>Categorias</span></a>
             <li class="treeview"><a href="?c=variantes"><i class="fa fa-solid fa-keyboard" style="color: white;"></i><span>Variantes</span></a>
+            <li class="treeview"><a href="?c=preciosenvios"><i class="fa fa-solid fa-truck" style="color: white;"></i><span>Precios de envios</span></a>
             <li class="treeview"><a href="?c=configuracion"><i class="fa fa-solid fa-gear" style="color: white;"></i><span>Configuracion</span></a>
             <!-- <li class="treeview"><a href="?c=contacto"><i class="fa fa-solid fa-phone"></i><span>Contacto</span></a> -->
               <!-- <ul class="treeview-menu">

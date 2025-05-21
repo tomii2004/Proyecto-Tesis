@@ -153,7 +153,7 @@ $current_page = basename($_SERVER['SCRIPT_NAME']);
                     </div>
                     <?php if (isset($_SESSION['user_id'])) { ?>
                         <div class="dropdown">
-                            <button class="btn btn-succes btn-md dropdown-toggle text-white " type="button" id="btn_session" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-md dropdown-toggle text-white " type="button" id="btn_session" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-person"><span style="font-family:Poppins-Medium;font-size:16px;padding-left:5px;"><?php echo $_SESSION['user_name']; ?></span> </i>
                             </button>
                             <ul class="dropdown-menu " aria-labelledby="btn_session">

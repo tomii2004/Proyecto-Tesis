@@ -1,48 +1,46 @@
+<style>
+.swal2-popup.alerta-grande {
+    width: 450px !important;
+    /* Ancho más grande */
+    height: auto !important;
+    /* Ajuste automático de altura */
+    font-size: 12px !important;
+    /* Fuente más grande */
+}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compras</title>
-    <style>.swal2-popup.alerta-grande {
-        width: 450px !important; /* Ancho más grande */
-        height: auto !important; /* Ajuste automático de altura */
-        font-size: 12px !important; /* Fuente más grande */
-        }
-        .btnclear{
-            position: absolute; 
-            top: 50%; 
-            right: 10px; 
-            transform: translateY(-50%); 
-            border: none; 
-            background: transparent; 
-            cursor: pointer; 
-            padding: 0;
-            font-size: 16px;
-            color:grey;
-        }
-    </style>
-</head>
-<body>
-    
-    <div class="content-wrapper">
+.btnclear {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    font-size: 16px;
+    color: grey;
+}
+</style>
+
+
+<div class="content-wrapper">
     <div class="page-title">
-    <div>
-        <h2>Usuarios</h2>
-        <p>Ver Usuarios </p>
+        <div>
+            <h2>Usuarios</h2>
+            <p>Ver Usuarios </p>
+        </div>
+        <div>
+            <ul class="breadcrumb">
+                <li><i class="fa fa-home fa-lg"></i></li>
+                <li><a href="?c=usuarios">Usuarios</a></li>
+            </ul>
+        </div>
     </div>
-    <div>
-        <ul class="breadcrumb">
-        <li><i class="fa fa-home fa-lg"></i></li>
-        <li><a href="?c=usuarios">Usuarios</a></li>
-        </ul>
-    </div>
-    </div>
-    <div class = "container-fluid px-4">
+    <div class="container-fluid px-4">
         <div class="table-responsive">
             <div style="display: inline-block; position: relative; width: auto;margin-bottom: 20px;">
-                <input type="text" id="buscador" class="form-control form-control-sm" placeholder="Buscar usuario..." style="padding-right: 30px;">
+                <input type="text" id="buscador" class="form-control form-control-sm" placeholder="Buscar usuario..."
+                    style="padding-right: 30px;">
                 <button type="button" id="clear-buscador" class="btnclear">✖</button>
             </div>
             <table id="tablausuarios" class="table table-hover">
@@ -56,25 +54,30 @@
                 </thead>
                 <tbody>
                     <?php if (!empty($usuarios)) { ?>
-                        <?php foreach($usuarios as $usuario){ ?>
-                            <tr>
-                                <td><?php echo $usuario['cliente']; ?></td>
-                                <td><?php echo $usuario['usuario']; ?></td>
-                                <td><?php echo $usuario['estatus']; ?></td>
-                                <td>
-                                    <a href="?c=usuarios&a=FormEditarPassword&user_id=<?php echo $usuario['ID_usuario'];?>" class="btn btn-primary"><i class="fa fa-solid fa-pen"></i></a>
-                                    <?php if($usuario['activacion'] == 1):?>
-                                        <button type="button" class="btn btn-danger" onclick="deshabilitarusuario('<?php echo $usuario['ID_usuario']; ?>')"><i class="fa fa-solid fa-arrow-down"></i> </button>
-                                    <?php else : ?>
-                                        <button type="button" class="btn btn-success" onclick="habilitarusuario('<?php echo $usuario['ID_usuario']; ?>')"><i class="fa fa-solid fa-arrow-up"></i> </button>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php }?>
+                    <?php foreach($usuarios as $usuario){ ?>
+                    <tr>
+                        <td><?php echo $usuario['cliente']; ?></td>
+                        <td><?php echo $usuario['usuario']; ?></td>
+                        <td><?php echo $usuario['estatus']; ?></td>
+                        <td>
+                            <a href="?c=usuarios&a=FormEditarPassword&user_id=<?php echo $usuario['ID_usuario'];?>"
+                                class="btn btn-primary"><i class="fa fa-solid fa-pen"></i></a>
+                            <?php if($usuario['activacion'] == 1):?>
+                            <button type="button" class="btn btn-danger"
+                                onclick="deshabilitarusuario('<?php echo $usuario['ID_usuario']; ?>')"><i
+                                    class="fa fa-solid fa-arrow-down"></i> </button>
+                            <?php else : ?>
+                            <button type="button" class="btn btn-success"
+                                onclick="habilitarusuario('<?php echo $usuario['ID_usuario']; ?>')"><i
+                                    class="fa fa-solid fa-arrow-up"></i> </button>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php }?>
                     <?php } else { ?>
-                        <tr>
-                            <td colspan="3">No hay usuarios registradas.</td>
-                        </tr>
+                    <tr>
+                        <td colspan="3">No hay usuarios registradas.</td>
+                    </tr>
                     <?php } ?>
                 </tbody>
             </table>
@@ -82,7 +85,8 @@
                 <ul class="pagination">
                     <!-- Botón "Anterior" -->
                     <li class="page-item <?= ($pagina_actual <= 1) ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?c=compras&pagina=<?= max($pagina_actual - 1,1)?>" aria-label="Previous">
+                        <a class="page-link" href="?c=compras&pagina=<?= max($pagina_actual - 1,1)?>"
+                            aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
                             <span class="sr-only">Anterior</span>
                         </a>
@@ -97,18 +101,17 @@
 
                     <!-- Botón "Siguiente" -->
                     <li class="page-item <?= ($pagina_actual >= $total_paginas) ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?c=compras&pagina=<?= min($pagina_actual + 1,$total_paginas)?>" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                        <span class="sr-only">Siguiente</span>
-                    </a>
+                        <a class="page-link" href="?c=compras&pagina=<?= min($pagina_actual + 1,$total_paginas)?>"
+                            aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                            <span class="sr-only">Siguiente</span>
+                        </a>
                     </li>
                 </ul>
             </nav>
         </div>
     </div>
-</body>
-</html>
-<script>
+    <script>
     function deshabilitarusuario(id) {
         Swal.fire({
             title: '¿Está seguro?',
@@ -125,7 +128,9 @@
                 $.ajax({
                     url: '?c=usuarios&a=PeticionBajaUsuario', // Ajusta según tu estructura de rutas
                     method: 'POST',
-                    data: { id: id },
+                    data: {
+                        id: id
+                    },
                     dataType: 'json',
                     success: function(response) {
                         if (response.datosUsuario) {
@@ -178,6 +183,7 @@
             }
         });
     }
+
     function habilitarusuario(id) {
         Swal.fire({
             title: '¿Está seguro?',
@@ -194,7 +200,9 @@
                 $.ajax({
                     url: '?c=usuarios&a=PeticionAltaUsuario', // Ajusta según tu estructura de rutas
                     method: 'POST',
-                    data: { id: id },
+                    data: {
+                        id: id
+                    },
                     dataType: 'json',
                     success: function(response) {
                         if (response.datosUsuario) {
@@ -247,17 +255,17 @@
             }
         });
     }
-</script>
-<script>
+    </script>
+    <script>
     // Actualización de la tabla al escribir en el buscador
-    document.getElementById('buscador').addEventListener('input', function () {
+    document.getElementById('buscador').addEventListener('input', function() {
         const termino = this.value;
         // Oculta la paginación si hay un término de búsqueda
         const paginacion = document.querySelector('nav[aria-label="Page navigation"]');
         if (termino) {
-        paginacion.style.display = 'none';
+            paginacion.style.display = 'none';
         } else {
-        paginacion.style.display = 'block';
+            paginacion.style.display = 'block';
         }
         fetch(`?c=usuarios&a=BuscarAjax&termino=${encodeURIComponent(termino)}`)
             .then(response => response.json())
@@ -266,9 +274,9 @@
                 tbody.innerHTML = ''; // Limpia la tabla
                 if (data.length > 0) {
                     data.forEach(usuario => {
-                        const botonEstado = usuario.activacion == 1
-                        ? `<button type="button" class="btn btn-danger" onclick="deshabilitarusuario('${usuario.ID_usuario}')"><i class="fa fa-solid fa-arrow-down"></i></button>`
-                        : `<button type="button" class="btn btn-success" onclick="habilitarusuario('${usuario.ID_usuario}')"><i class="fa fa-solid fa-arrow-up"></i></button>`;
+                        const botonEstado = usuario.activacion == 1 ?
+                            `<button type="button" class="btn btn-danger" onclick="deshabilitarusuario('${usuario.ID_usuario}')"><i class="fa fa-solid fa-arrow-down"></i></button>` :
+                            `<button type="button" class="btn btn-success" onclick="habilitarusuario('${usuario.ID_usuario}')"><i class="fa fa-solid fa-arrow-up"></i></button>`;
                         const row = `
                             <tr>
                                     <td>${usuario.cliente}</td>
@@ -282,15 +290,16 @@
                         `;
                         tbody.innerHTML += row;
                     });
-                }else{
+                } else {
                     tbody.innerHTML = '<tr><td colspan="4">No hay resultados.</td></tr>';
                 }
             })
             .catch(error => console.error('Error:', error));
     });
-    document.getElementById('clear-buscador').addEventListener('click', function () {
+    document.getElementById('clear-buscador').addEventListener('click', function() {
         const buscador = document.getElementById('buscador');
         buscador.value = ''; // Limpia el valor del input
-        buscador.dispatchEvent(new Event('input')); // Simula un evento de entrada para actualizar los resultados
+        buscador.dispatchEvent(new Event(
+        'input')); // Simula un evento de entrada para actualizar los resultados
     });
-</script>
+    </script>

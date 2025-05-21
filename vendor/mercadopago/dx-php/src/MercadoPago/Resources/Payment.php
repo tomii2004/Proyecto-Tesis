@@ -26,11 +26,8 @@ class Payment extends MPResource
     /** Operation type. */
     public ?string $operation_type;
 
-    /** Order ID. */
-    public ?int $order_id;
-
     /** Order. */
-    public ?array $order;
+    public array|object|null $order;
 
     /** Brand ID. */
     public ?string $brand_id;
@@ -188,6 +185,9 @@ class Payment extends MPResource
     /** Coupon code. */
     public ?string $coupon_code;
 
+    /** Release Info. */
+    public ?string $release_info;
+
     /** Marketplace owner. */
     public ?string $marketplace_owner;
 
@@ -235,6 +235,7 @@ class Payment extends MPResource
         "payment_method" => "MercadoPago\Resources\Payment\PaymentMethod",
         "metadata" => "MercadoPago\Resources\Payment\Metadata",
         "three_ds_info" => "MercadoPago\Resources\Payment\ThreeDSInfo",
+        "order"=> "MercadoPago\Resources\Payment\Order"
     ];
 
     /**

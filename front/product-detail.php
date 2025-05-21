@@ -195,7 +195,7 @@
 											<select class="form-select form-select-md " name="talles" id="talles" onchange="cargarColores()">
 												<option value="" disabled selected>Selecccionar</option>
 												<?php foreach($tallas as $talla){?>
-													<option value="<?php echo $talla['ID_talla'];?>"><?php echo $talla['nombre'];?></option>
+													<option value="<?php echo $talla['ID_talla'];?>"><?php echo ucfirst($talla['nombre']);?></option>
 												<?php } ?>
 											</select>
 										<?php } ?>
@@ -215,7 +215,7 @@
 											<select class="form-select form-select-md " name="colores" id="colores">
 												<option value="">Selecccionar</option>
 												<?php foreach($colores as $color){?>
-													<option value="<?php echo $color['ID_colores'];?>"><?php echo $color['nombre'];?></option>
+													<option value="<?php echo $color['ID_colores'];?>"><?php echo ucfirst($color['nombre']);?></option>
 												<?php } ?>
 											</select>
 										<?php } ?> 

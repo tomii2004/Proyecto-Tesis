@@ -26,15 +26,7 @@
                     <a href="carrito.php" class="flex-c-m stext-101 cl0 size-107 bg3 bor2 hov-btn3 p-lr-15 trans-04 m-r-8 m-b-10">
                         Ver Carrito
                     </a>
-                    <?php if(isset($_SESSION['user_cliente'])) { ?>
-                        <a href="pago.php" class="flex-c-m stext-101 cl0 size-107 bg3 bor2 hov-btn3 p-lr-15 trans-04 m-b-10">
-                            Finalizar Compra
-                        </a>
-                    <?php } else { ?>
-                        <a href="../paginalogin/login.php?pago" class="flex-c-m stext-101 cl0 size-107 bg3 bor2 hov-btn3 p-lr-15 trans-04 m-b-10">
-                            Finalizar Compra
-                        </a>
-                    <?php } ?>
+                    
                 </div>
             </div>
         </div>

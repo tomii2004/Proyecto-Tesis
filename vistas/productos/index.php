@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" type="text/css" href="assets/css/mainmio.css">
-  
 </head>
-<body>
+
   <div class="content-wrapper">
     <div class="page-title">
       <div>
@@ -128,9 +124,6 @@
       </div>
     </div>
   </div>
-</body>
-</html>
-
 <script>
 function modificarStock(id, accion) {
   let stockElement = document.getElementById('stock-' + id);
