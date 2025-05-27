@@ -31,8 +31,11 @@ El proyecto consiste en una plataforma de comercio electrónico que permite a lo
 - **vistas/**: Plantillas y vistas utilizadas para renderizar las páginas.
 - **index.php**: Punto de entrada principal de la aplicación.
 
-## Instalación
+## 📄 Derechos de Autor
 
-1. **Clonar el repositorio**:
-   ```bash
-   git clone https://github.com/tomii2004/Proyecto-Tesis.git
+© 2025 Tomás. Todos los derechos reservados.
+
+Este proyecto fue desarrollado con fines educativos y personales. **No está permitido su uso comercial, redistribución ni modificación sin autorización previa del autor.**
+
+Si querés colaborar, sugerir mejoras o usar parte del código, podés contactarme previamente.
+
